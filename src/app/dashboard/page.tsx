@@ -19,8 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/hooks/use-toast";
 import { PlusCircle, Search, History, User, Clock, CalendarIcon, Loader2, Sparkles } from "lucide-react";
 import { format } from "date-fns";
-
-const REASONS = ["Reading", "Researching", "Use of Computer", "Meeting", "Borrowing Books", "Other"];
+import { REASONS } from "@/lib/constants";
 
 export default function Dashboard() {
   const { user, profile, loading } = useAuth();
@@ -43,6 +42,8 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
 
+    // IMPORTANT: This query requires a composite index in Firestore.
+    // If it fails, check your browser console for a link to generate the index.
     const q = query(
       collection(db, "visits"),
       where("uid", "==", user.uid),
@@ -56,6 +57,14 @@ export default function Dashboard() {
         timestamp: doc.data().timestamp?.toDate()
       }));
       setVisits(visitData);
+      setLoadingVisits(false);
+    }, (error) => {
+      console.error("Visits fetch error:", error);
+      toast({ 
+        title: "Sync Error", 
+        description: "Failed to load activity history. You may need to create a Firestore index if this is a new project.", 
+        variant: "destructive" 
+      });
       setLoadingVisits(false);
     });
 
@@ -91,6 +100,7 @@ export default function Dashboard() {
       setReason("");
       setOtherReason("");
     } catch (error) {
+      console.error("Log Visit error:", error);
       toast({ title: "System Error", description: "Encountered a problem recording your log.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
@@ -98,7 +108,7 @@ export default function Dashboard() {
   };
 
   const filteredVisits = visits.filter(v => 
-    v.reason.toLowerCase().includes(searchReason.toLowerCase())
+    v.reason?.toLowerCase().includes(searchReason.toLowerCase())
   );
 
   if (loading) {

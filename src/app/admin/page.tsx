@@ -30,9 +30,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { adminVisitTrendSummary } from "@/ai/flows/admin-visit-trend-summary-flow";
 import { adminOtherReasonAnalysis } from "@/ai/flows/admin-other-reason-analysis";
-
-const COLLEGES = ["All", "CCS", "CBA", "COE", "COED", "CAHS", "CAS", "CRIM", "CITHM"];
-const REASONS = ["All", "Reading", "Researching", "Use of Computer", "Meeting", "Borrowing Books", "Other"];
+import { COLLEGES, REASONS } from "@/lib/constants";
 
 export default function AdminDashboard() {
   const { user, profile, loading, role } = useAuth();
@@ -69,10 +67,18 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (role !== "admin") return;
 
-    const unsubscribeVisits = onSnapshot(query(collection(db, "visits"), orderBy("timestamp", "desc")), (snapshot) => {
-      setVisits(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setLoadingData(false);
-    });
+    const unsubscribeVisits = onSnapshot(
+      query(collection(db, "visits"), orderBy("timestamp", "desc")), 
+      (snapshot) => {
+        setVisits(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setLoadingData(false);
+      },
+      (error) => {
+        console.error("Admin visits fetch error:", error);
+        toast({ title: "Fetch Error", description: "Failed to load visit history. Check console for index requirements.", variant: "destructive" });
+        setLoadingData(false);
+      }
+    );
 
     const unsubscribeUsers = onSnapshot(collection(db, "users"), (snapshot) => {
       setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -427,6 +433,7 @@ export default function AdminDashboard() {
                     <SelectValue placeholder="Reason" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="All">All Reasons</SelectItem>
                     {REASONS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                   </SelectContent>
                 </Select>
@@ -435,7 +442,8 @@ export default function AdminDashboard() {
                     <SelectValue placeholder="College" />
                   </SelectTrigger>
                   <SelectContent>
-                    {COLLEGES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    <SelectItem value="All">All Colleges</SelectItem>
+                    {COLLEGES.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Select onValueChange={setStatusFilter} value={statusFilter}>
@@ -710,7 +718,7 @@ export default function AdminDashboard() {
                               <SelectValue placeholder="Choose action..." />
                             </SelectTrigger>
                             <SelectContent>
-                              {REASONS.filter(r => r !== "All").map(r => (
+                              {REASONS.map(r => (
                                 <SelectItem key={r} value={r} className="font-black text-lg py-3 uppercase tracking-tight">{r}</SelectItem>
                               ))}
                             </SelectContent>

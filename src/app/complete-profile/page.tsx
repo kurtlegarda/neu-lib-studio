@@ -14,8 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { UserCheck, Loader2, Sparkles, CreditCard } from "lucide-react";
-
-const COLLEGES = ["CCS", "CBA", "COE", "COED", "CAHS", "CAS", "CRIM", "CITHM"];
+import { COLLEGES } from "@/lib/constants";
 
 export default function CompleteProfile() {
   const { user, profile, loading } = useAuth();
@@ -58,13 +57,20 @@ export default function CompleteProfile() {
       toast({ title: "Profile Initialized", description: "Access granted to NEU VisitFlow." });
       router.push("/dashboard");
     } catch (error) {
+      console.error("Profile update error:", error);
       toast({ title: "Sync Failure", description: "Failed to finalize your digital identity.", variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) return null;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#F5F6F8]">
+      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+    </div>
+  );
+
+  const selectedCollegeData = COLLEGES.find(c => c.id === college);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-[#F5F6F8]">
@@ -87,26 +93,28 @@ export default function CompleteProfile() {
           <form onSubmit={handleSubmit} className="space-y-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
-                <Label htmlFor="program" className="text-primary font-black uppercase tracking-widest text-[11px] ml-1">Academic Major / Program</Label>
-                <Input 
-                  id="program" 
-                  placeholder="e.g. BS Computer Science" 
-                  value={program} 
-                  onChange={(e) => setProgram(e.target.value)}
-                  className="h-16 border-2 border-primary/5 bg-[#F8FAFC] font-black text-xl rounded-2xl px-6 focus:border-secondary transition-all"
-                  required
-                />
-              </div>
-
-              <div className="space-y-4">
                 <Label htmlFor="college" className="text-primary font-black uppercase tracking-widest text-[11px] ml-1">University College</Label>
-                <Select onValueChange={setCollege} value={college}>
+                <Select onValueChange={(val) => { setCollege(val); setProgram(""); }} value={college}>
                   <SelectTrigger id="college" className="h-16 border-2 border-primary/5 bg-[#F8FAFC] font-black text-xl rounded-2xl px-6 focus:border-secondary transition-all">
                     <SelectValue placeholder="Select college..." />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-none shadow-2xl">
                     {COLLEGES.map((c) => (
-                      <SelectItem key={c} value={c} className="font-black text-lg py-4 uppercase tracking-tighter">{c}</SelectItem>
+                      <SelectItem key={c.id} value={c.id} className="font-black text-lg py-4 uppercase tracking-tighter">{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-4">
+                <Label htmlFor="program" className="text-primary font-black uppercase tracking-widest text-[11px] ml-1">Academic Major / Program</Label>
+                <Select onValueChange={setProgram} value={program} disabled={!college}>
+                  <SelectTrigger id="program" className="h-16 border-2 border-primary/5 bg-[#F8FAFC] font-black text-xl rounded-2xl px-6 focus:border-secondary transition-all">
+                    <SelectValue placeholder="Select program..." />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-none shadow-2xl">
+                    {selectedCollegeData?.programs.map((p) => (
+                      <SelectItem key={p} value={p} className="font-black text-lg py-4 uppercase tracking-tighter">{p}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -125,7 +133,6 @@ export default function CompleteProfile() {
                 onChange={(e) => setRfid(e.target.value)}
                 className="h-16 border-2 border-primary/5 bg-[#F8FAFC] font-black text-xl rounded-2xl px-6 focus:border-secondary transition-all"
               />
-              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em] ml-1">Enables rapid entry via automated scanning systems</p>
             </div>
 
             <div className="p-8 bg-[#F8FAFC] rounded-[2rem] border-2 border-primary/5 flex items-center justify-between shadow-inner">

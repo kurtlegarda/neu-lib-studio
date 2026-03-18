@@ -15,19 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Library, Sparkles } from "lucide-react";
 import { format } from "date-fns";
-
-const COLLEGES = [
-  { id: "CCS", name: "College of Computer Studies", programs: ["BSCS", "BSIT", "BSIS"] },
-  { id: "CBA", name: "College of Business Administration", programs: ["BSA", "BSBA-FM", "BSBA-MM"] },
-  { id: "COE", name: "College of Engineering", programs: ["BSCE", "BSEE", "BSME"] },
-  { id: "COED", name: "College of Education", programs: ["BEED", "BSED-Eng", "BSED-Math"] },
-  { id: "CAHS", name: "College of Allied Health Sciences", programs: ["BSN", "BSP"] },
-  { id: "CAS", name: "College of Arts and Sciences", programs: ["AB-Comm", "AB-Psych"] },
-  { id: "CRIM", name: "College of Criminology", programs: ["BS-Crim"] },
-  { id: "CITHM", name: "College of International Tourism and Hospitality Management", programs: ["BSHM", "BSTM"] },
-];
-
-const REASONS = ["Reading", "Researching", "Use of Computer", "Meeting", "Borrowing Books", "Other"];
+import { COLLEGES, REASONS } from "@/lib/constants";
 
 export default function LogVisitPage() {
   const { user, profile, loading } = useAuth();
@@ -86,10 +74,11 @@ export default function LogVisitPage() {
         date: visitDate,
       });
       
+      toast({ title: "Entry Recorded", description: "Your visit has been successfully registered." });
       router.push("/welcome");
     } catch (error) {
-      console.error(error);
-      toast({ title: "System Error", description: "Encountered a problem recording your log.", variant: "destructive" });
+      console.error("Visit recording error:", error);
+      toast({ title: "System Error", description: "Encountered a problem recording your log. Please check your network or permissions.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
