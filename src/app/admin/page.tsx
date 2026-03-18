@@ -22,14 +22,12 @@ import {
 } from "recharts";
 import { 
   Users, UserCheck, FileText, Search, Download, Shield, ShieldAlert, 
-  TrendingUp, Calendar as CalendarIcon, UserPlus, Zap, Sparkles, Loader2, Filter, 
+  TrendingUp, Calendar as CalendarIcon, UserPlus, Zap, Loader2, Filter, 
   PieChart, Activity
 } from "lucide-react";
 import { format, startOfDay, startOfWeek, startOfMonth, subDays, isSameDay } from "date-fns";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { adminVisitTrendSummary } from "@/ai/flows/admin-visit-trend-summary-flow";
-import { adminOtherReasonAnalysis } from "@/ai/flows/admin-other-reason-analysis";
 import { COLLEGES, REASONS } from "@/lib/constants";
 
 export default function AdminDashboard() {
@@ -51,12 +49,6 @@ export default function AdminDashboard() {
   const [quickSearch, setQuickSearch] = useState("");
   const [foundUser, setFoundUser] = useState<any>(null);
   const [quickReason, setQuickReason] = useState("");
-
-  // AI Analysis State
-  const [aiSummary, setAiSummary] = useState<string | null>(null);
-  const [aiAnalysis, setAiAnalysis] = useState<any[] | null>(null);
-  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
-  const [isGeneratingAnalysis, setIsGeneratingAnalysis] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || role !== "admin")) {
@@ -214,57 +206,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleGenerateSummary = async () => {
-    if (filteredVisits.length === 0) {
-      toast({ title: "Insufficient Data", description: "Requires at least one record to analyze.", variant: "destructive" });
-      return;
-    }
-    setIsGeneratingSummary(true);
-    try {
-      const input = {
-        visits: filteredVisits.map(v => ({
-          timestamp: v.timestamp?.toDate()?.toISOString() || new Date().toISOString(),
-          reason: v.reason,
-          college: v.college,
-          program: v.program,
-          isEmployee: v.isEmployee,
-          employeeType: v.employeeType
-        })),
-        dateRange: {
-          startDate: format(startOfMonth(new Date()), "yyyy-MM-dd"),
-          endDate: format(new Date(), "yyyy-MM-dd"),
-        }
-      };
-      const result = await adminVisitTrendSummary(input);
-      setAiSummary(result.summary);
-    } catch (error) {
-      toast({ title: "Analysis Failure", description: "GenAI failed to process the current data stream.", variant: "destructive" });
-    } finally {
-      setIsGeneratingSummary(false);
-    }
-  };
-
-  const handleAnalyzeOtherReasons = async () => {
-    const otherReasons = visits
-      .filter(v => !["Reading", "Researching", "Use of Computer", "Meeting", "Borrowing Books"].includes(v.reason))
-      .map(v => v.reason);
-
-    if (otherReasons.length === 0) {
-      toast({ title: "No Qualitative Data", description: "No custom reasons found for thematic analysis.", variant: "destructive" });
-      return;
-    }
-
-    setIsGeneratingAnalysis(true);
-    try {
-      const result = await adminOtherReasonAnalysis({ otherReasons });
-      setAiAnalysis(result.analysis);
-    } catch (error) {
-      toast({ title: "Analysis Failure", description: "Thematic categorization failed.", variant: "destructive" });
-    } finally {
-      setIsGeneratingAnalysis(false);
-    }
-  };
-
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(22);
@@ -367,7 +308,6 @@ export default function AdminDashboard() {
           <TabsList className="bg-white/80 backdrop-blur-md border-2 border-primary/5 p-2 rounded-2xl shadow-xl inline-flex h-auto">
             {[
               { val: "visits", label: "Registry Logs", icon: FileText },
-              { val: "insights", label: "Intelli-Insights", icon: Sparkles },
               { val: "users", label: "User Management", icon: Users },
               { val: "tools", label: "System Tools", icon: Zap }
             ].map(tab => (
@@ -520,76 +460,6 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="insights" className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <Card className="border-none shadow-2xl bg-white rounded-3xl overflow-hidden">
-                <CardHeader className="bg-primary text-white py-8 px-8">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="flex items-center gap-3 text-2xl font-black uppercase tracking-tighter font-headline">
-                        <Sparkles className="text-secondary" size={32} />
-                        Traffic Analytics (AI)
-                      </CardTitle>
-                      <CardDescription className="text-white/70 text-base font-bold uppercase tracking-widest mt-1">Algorithmic Behavioral Summary</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-8 space-y-8">
-                  <Button 
-                    onClick={handleGenerateSummary} 
-                    disabled={isGeneratingSummary}
-                    className="w-full h-16 text-lg font-black bg-primary hover:bg-primary/95 shadow-2xl active:scale-[0.98] transition-all rounded-2xl"
-                  >
-                    {isGeneratingSummary ? <Loader2 className="mr-2 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                    GENERATE TREND REPORT
-                  </Button>
-                  {aiSummary && (
-                    <div className="p-8 bg-[#F8FAFC] rounded-2xl border-2 border-primary/5 text-lg leading-relaxed font-medium animate-in fade-in slide-in-from-top-6 duration-700 whitespace-pre-wrap">
-                      {aiSummary}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="border-none shadow-2xl bg-white rounded-3xl overflow-hidden">
-                <CardHeader className="bg-secondary text-primary py-8 px-8">
-                  <div>
-                    <CardTitle className="flex items-center gap-3 text-2xl font-black uppercase tracking-tighter font-headline">
-                      <TrendingUp className="text-primary" size={32} />
-                      Qualitative Deep-Dive
-                    </CardTitle>
-                    <CardDescription className="text-primary/70 text-base font-bold uppercase tracking-widest mt-1">Custom Reason Thematic Mapping</CardDescription>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-8 space-y-8">
-                  <Button 
-                    onClick={handleAnalyzeOtherReasons} 
-                    disabled={isGeneratingAnalysis}
-                    className="w-full h-16 text-lg font-black bg-secondary hover:bg-secondary/80 text-primary shadow-2xl active:scale-[0.98] transition-all rounded-2xl"
-                  >
-                    {isGeneratingAnalysis ? <Loader2 className="mr-2 animate-spin" /> : <PieChart className="mr-2 h-5 w-5" />}
-                    MAP CUSTOM REASONS
-                  </Button>
-                  {aiAnalysis && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-top-6 duration-700">
-                      {aiAnalysis.map((item, idx) => (
-                        <div key={idx} className="p-6 bg-[#F8FAFC] rounded-2xl border-2 border-primary/5 space-y-3 group hover:border-secondary transition-colors">
-                          <p className="font-black text-primary text-xl uppercase tracking-tighter">{item.category}</p>
-                          <p className="text-base text-muted-foreground font-bold">{item.summary}</p>
-                          <div className="pt-3 flex flex-wrap gap-2">
-                            {item.exampleReasons.map((ex: string, i: number) => (
-                              <Badge key={i} variant="secondary" className="text-xs font-black bg-white border border-primary/5 text-primary px-3 py-1 uppercase">{ex}</Badge>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
           <TabsContent value="users" className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Card className="border-none shadow-2xl overflow-hidden bg-white rounded-3xl">
               <CardHeader className="bg-[#F8FAFC] p-8 border-b">
@@ -653,14 +523,16 @@ export default function AdminDashboard() {
                           >
                             Swap Privileges
                           </Button>
-                          <Button 
-                            variant={u.isBlocked ? "outline" : "destructive"} 
-                            size="sm"
-                            className="h-11 px-5 font-black rounded-xl shadow-lg"
-                            onClick={() => handleToggleBlock(u.id, u.isBlocked)}
-                          >
-                            {u.isBlocked ? "Allow Access" : "Block Access"}
-                          </Button>
+                          {u.role !== "admin" && (
+                            <Button 
+                              variant={u.isBlocked ? "outline" : "destructive"} 
+                              size="sm"
+                              className="h-11 px-5 font-black rounded-xl shadow-lg"
+                              onClick={() => handleToggleBlock(u.id, u.isBlocked)}
+                            >
+                              {u.isBlocked ? "Allow Access" : "Block Access"}
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
