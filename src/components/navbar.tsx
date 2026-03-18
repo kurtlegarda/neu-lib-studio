@@ -30,12 +30,12 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-primary text-primary-foreground shadow-sm px-4 h-16 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="bg-secondary p-1.5 rounded-lg text-primary shadow-sm group-hover:scale-105 transition-transform">
+        <div className="flex items-center gap-2">
+          <div className="bg-secondary p-1.5 rounded-lg text-primary shadow-sm">
             <Library size={24} />
           </div>
           <span className="font-bold text-xl tracking-tight hidden sm:inline-block">NEU VisitFlow</span>
-        </Link>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
