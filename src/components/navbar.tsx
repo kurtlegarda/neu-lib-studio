@@ -15,11 +15,14 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Library, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
+import Image from "next/image";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export function Navbar() {
   const { profile } = useAuth();
   const router = useRouter();
+  const logo = PlaceHolderImages.find(img => img.id === "neu-logo");
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -29,11 +32,19 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-primary text-primary-foreground shadow-sm px-4 h-16 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2">
-          <div className="bg-secondary p-1.5 rounded-lg text-primary shadow-sm">
-            <Library size={24} />
-          </div>
-          <span className="font-bold text-xl tracking-tight hidden sm:inline-block">NEU VisitFlow</span>
+        <div className="flex items-center gap-3">
+          {logo && (
+            <div className="relative w-10 h-10 overflow-hidden rounded-xl border-2 border-secondary shadow-lg">
+              <Image 
+                src={logo.imageUrl} 
+                alt="NEU Logo" 
+                fill 
+                className="object-cover"
+                data-ai-hint="university logo"
+              />
+            </div>
+          )}
+          <span className="font-black text-xl tracking-tighter uppercase hidden sm:inline-block">NEU VisitFlow</span>
         </div>
       </div>
 

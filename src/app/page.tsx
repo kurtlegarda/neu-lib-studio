@@ -10,11 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { LogIn, Loader2, Library } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import Image from "next/image";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export default function Home() {
   const { user, profile, loading } = useAuth();
   const router = useRouter();
   const [signingIn, setSigningIn] = useState(false);
+  const logo = PlaceHolderImages.find(img => img.id === "neu-logo");
 
   useEffect(() => {
     if (!loading && user && profile) {
@@ -77,11 +80,23 @@ export default function Home() {
         </div>
       </div>
 
-      <Card className="w-full max-w-md shadow-2xl border-none overflow-hidden relative z-10 bg-white">
+      <Card className="w-full max-w-md shadow-2xl border-none overflow-hidden relative z-10 bg-white rounded-[2.5rem]">
         <div className="h-2 bg-secondary w-full"></div>
         <CardHeader className="text-center space-y-6 pt-12 pb-8">
-          <div className="mx-auto w-28 h-28 bg-primary text-secondary rounded-[2rem] flex items-center justify-center shadow-2xl transform transition-transform hover:scale-105 duration-500">
-            <span className="text-4xl font-black tracking-tighter font-headline">NEU</span>
+          <div className="mx-auto w-32 h-32 relative rounded-[2.5rem] overflow-hidden shadow-2xl transform transition-transform hover:scale-105 duration-500 border-4 border-white">
+            {logo ? (
+              <Image 
+                src={logo.imageUrl} 
+                alt="NEU Logo" 
+                fill 
+                className="object-cover"
+                data-ai-hint="university logo"
+              />
+            ) : (
+              <div className="w-full h-full bg-primary flex items-center justify-center">
+                <span className="text-4xl font-black tracking-tighter text-white">NEU</span>
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <CardTitle className="text-3xl font-black tracking-tight text-primary font-headline uppercase">VisitFlow</CardTitle>
@@ -99,7 +114,7 @@ export default function Home() {
             <Button 
               onClick={handleSignIn} 
               disabled={signingIn}
-              className="w-full h-16 text-lg font-black bg-primary hover:bg-primary/95 text-white flex gap-4 shadow-xl transition-all active:scale-[0.98] rounded-xl group"
+              className="w-full h-16 text-lg font-black bg-primary hover:bg-primary/95 text-white flex gap-4 shadow-xl transition-all active:scale-[0.98] rounded-2xl group"
             >
               {signingIn ? <Loader2 className="animate-spin" /> : <LogIn size={22} className="group-hover:translate-x-1 transition-transform" />}
               {signingIn ? "Signing In..." : "Sign in with Google"}

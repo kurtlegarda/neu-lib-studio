@@ -67,7 +67,7 @@ export default function AdminDashboard() {
       },
       (error) => {
         console.error("Admin visits fetch error:", error);
-        toast({ title: "Fetch Error", description: "Failed to load visit history. Check console for index requirements.", variant: "destructive" });
+        toast({ title: "Fetch Error", description: "Failed to load visit history.", variant: "destructive" });
         setLoadingData(false);
       }
     );
