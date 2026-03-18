@@ -1,3 +1,16 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "neu-logo",
+      "description": "NEU University Logo",
+      "imageUrl": "https://picsum.photos/seed/neu-main/600/600",
+      "imageHint": "university architecture"
+    },
+    {
+      "id": "library-bg",
+      "description": "Library interior background",
+      "imageUrl": "https://picsum.photos/seed/library-int/1920/1080",
+      "imageHint": "modern library"
+    }
+  ]
 }

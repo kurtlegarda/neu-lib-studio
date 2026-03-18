@@ -1,0 +1,55 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stored user information including role and status.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "isBlocked": { "type": "boolean" },
+        "program": { "type": "string" },
+        "college": { "type": "string" },
+        "isEmployee": { "type": "boolean" },
+        "employeeType": { "type": "string" },
+        "rfid": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "isBlocked"]
+    },
+    "Visit": {
+      "title": "Visit Log",
+      "description": "Records of library visitor entries.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "program": { "type": "string" },
+        "college": { "type": "string" },
+        "isEmployee": { "type": "boolean" },
+        "employeeType": { "type": "string" },
+        "reason": { "type": "string" },
+        "timestamp": { "type": "object" },
+        "date": { "type": "string" }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["google.com"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile documents"
+    },
+    "/visits/{visitId}": {
+      "schema": "Visit",
+      "description": "Visitor log entries"
+    }
+  }
+}
