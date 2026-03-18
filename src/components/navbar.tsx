@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -15,7 +16,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Library, LayoutDashboard, Settings, LogOut, User as UserIcon } from "lucide-react";
+import { Library, Settings, LogOut, LayoutDashboard } from "lucide-react";
 
 export function Navbar() {
   const { profile } = useAuth();
@@ -39,19 +40,21 @@ export function Navbar() {
 
       <div className="flex items-center gap-4">
         {profile?.role === "admin" && (
-          <Link href="/admin">
-            <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-white/10 gap-2">
-              <Settings size={18} />
-              <span className="hidden sm:inline">Admin Panel</span>
-            </Button>
-          </Link>
+          <>
+            <Link href="/admin">
+              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-white/10 gap-2">
+                <Settings size={18} />
+                <span className="hidden sm:inline">Admin Panel</span>
+              </Button>
+            </Link>
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-white/10 gap-2">
+                <LayoutDashboard size={18} />
+                <span className="hidden sm:inline">User Dashboard</span>
+              </Button>
+            </Link>
+          </>
         )}
-        <Link href="/dashboard">
-          <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-white/10 gap-2">
-            <LayoutDashboard size={18} />
-            <span className="hidden sm:inline">Dashboard</span>
-          </Button>
-        </Link>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -71,13 +74,6 @@ export function Navbar() {
                 <p className="text-xs leading-none text-muted-foreground">{profile?.email}</p>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
-                <UserIcon size={16} />
-                <span>My Profile</span>
-              </Link>
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:bg-destructive/10 cursor-pointer">
               <LogOut size={16} className="mr-2" />

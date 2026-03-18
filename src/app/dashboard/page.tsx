@@ -42,8 +42,6 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
 
-    // IMPORTANT: This query requires a composite index in Firestore.
-    // If it fails, check your browser console for a link to generate the index.
     const q = query(
       collection(db, "visits"),
       where("uid", "==", user.uid),
@@ -62,7 +60,7 @@ export default function Dashboard() {
       console.error("Visits fetch error:", error);
       toast({ 
         title: "Sync Error", 
-        description: "Failed to load activity history. You may need to create a Firestore index if this is a new project.", 
+        description: "Failed to load activity history. Check console for index requirements.", 
         variant: "destructive" 
       });
       setLoadingVisits(false);
@@ -145,7 +143,7 @@ export default function Dashboard() {
               <div className="text-center md:text-left space-y-6">
                 <div className="space-y-1">
                   <h1 className="text-5xl font-black text-primary font-headline tracking-tighter uppercase leading-none">
-                    Welcome back, <br className="hidden md:block"/> {profile?.displayName?.split(' ')[0]}!
+                    Welcome to the <br className="hidden md:block"/> NEU Library, <br className="hidden md:block"/> {profile?.displayName?.split(' ')[0]}!
                   </h1>
                   <p className="text-xl font-bold text-muted-foreground uppercase tracking-widest opacity-60">Library Access Dashboard</p>
                 </div>
