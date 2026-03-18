@@ -1,7 +1,6 @@
 
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -16,7 +15,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Library, Settings, LogOut, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { Library, LogOut } from "lucide-react";
 
 export function Navbar() {
   const { profile } = useAuth();
@@ -39,17 +38,6 @@ export function Navbar() {
       </div>
 
       <div className="flex items-center gap-4">
-        {profile?.role === "admin" && (
-          <div className="flex items-center gap-2 mr-2">
-            <Link href="/admin">
-              <Button variant="secondary" size="sm" className="font-black uppercase tracking-tighter gap-2 shadow-lg border-2 border-white/10 hover:bg-secondary/90">
-                <ShieldCheck size={18} />
-                Admin Panel
-              </Button>
-            </Link>
-          </div>
-        )}
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 border-2 border-secondary/30">
@@ -68,15 +56,6 @@ export function Navbar() {
                 <p className="text-xs leading-none text-muted-foreground">{profile?.email}</p>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {profile?.role === "admin" && (
-              <DropdownMenuItem asChild>
-                <Link href="/admin" className="cursor-pointer">
-                  <Settings size={16} className="mr-2" />
-                  <span>Control Center</span>
-                </Link>
-              </DropdownMenuItem>
-            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:bg-destructive/10 cursor-pointer">
               <LogOut size={16} className="mr-2" />

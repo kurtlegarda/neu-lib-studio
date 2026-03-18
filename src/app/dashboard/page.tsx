@@ -8,7 +8,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,12 +17,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/hooks/use-toast";
-import { PlusCircle, Search, History, User, Clock, CalendarIcon, Loader2, Sparkles } from "lucide-react";
+import { PlusCircle, Search, History, Loader2, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { REASONS } from "@/lib/constants";
 
 export default function Dashboard() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, role } = useAuth();
   const router = useRouter();
 
   const [visits, setVisits] = useState<any[]>([]);
@@ -35,12 +35,19 @@ export default function Dashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) router.push("/");
-    if (!loading && profile && !profile.program) router.push("/complete-profile");
-  }, [user, profile, loading, router]);
+    if (!loading) {
+      if (!user) {
+        router.push("/");
+      } else if (role === "admin") {
+        router.push("/admin");
+      } else if (profile && !profile.program) {
+        router.push("/complete-profile");
+      }
+    }
+  }, [user, profile, loading, role, router]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || role === "admin") return;
 
     const q = query(
       collection(db, "visits"),
@@ -58,16 +65,11 @@ export default function Dashboard() {
       setLoadingVisits(false);
     }, (error) => {
       console.error("Visits fetch error:", error);
-      toast({ 
-        title: "Sync Error", 
-        description: "Failed to load activity history. Check console for index requirements.", 
-        variant: "destructive" 
-      });
       setLoadingVisits(false);
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, role]);
 
   const handleLogVisit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,12 +111,12 @@ export default function Dashboard() {
     v.reason?.toLowerCase().includes(searchReason.toLowerCase())
   );
 
-  if (loading) {
+  if (loading || role === "admin") {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-primary font-bold animate-pulse">Establishing Secure Session...</p>
+          <p className="text-primary font-bold animate-pulse">Syncing Session...</p>
         </div>
       </div>
     );

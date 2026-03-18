@@ -18,7 +18,7 @@ import { format } from "date-fns";
 import { COLLEGES, REASONS } from "@/lib/constants";
 
 export default function LogVisitPage() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, role } = useAuth();
   const router = useRouter();
 
   const [collegeId, setCollegeId] = useState("");
@@ -28,14 +28,17 @@ export default function LogVisitPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/");
+    if (!loading) {
+      if (!user) {
+        router.push("/");
+      } else if (role === "admin") {
+        router.push("/admin");
+      } else if (profile) {
+        setCollegeId(profile.college || "");
+        setProgram(profile.program || "");
+      }
     }
-    if (!loading && profile) {
-      setCollegeId(profile.college || "");
-      setProgram(profile.program || "");
-    }
-  }, [user, profile, loading, router]);
+  }, [user, profile, loading, role, router]);
 
   const selectedCollege = COLLEGES.find((c) => c.id === collegeId);
 
@@ -52,7 +55,6 @@ export default function LogVisitPage() {
     try {
       const visitDate = format(new Date(), "yyyy-MM-dd");
       
-      // Update profile if college/program changed or was missing
       if (profile.college !== collegeId || profile.program !== program) {
         await updateDoc(doc(db, "users", profile.uid), {
           college: collegeId,
@@ -60,7 +62,6 @@ export default function LogVisitPage() {
         });
       }
 
-      // Record the visit
       await addDoc(collection(db, "visits"), {
         uid: profile.uid,
         displayName: profile.displayName,
@@ -78,13 +79,13 @@ export default function LogVisitPage() {
       router.push("/welcome");
     } catch (error) {
       console.error("Visit recording error:", error);
-      toast({ title: "System Error", description: "Encountered a problem recording your log. Please check your network or permissions.", variant: "destructive" });
+      toast({ title: "System Error", description: "Encountered a problem recording your log.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loading || !user) {
+  if (loading || !user || role === "admin") {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
