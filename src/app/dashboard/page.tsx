@@ -145,30 +145,25 @@ export default function Dashboard() {
                   <h1 className="text-5xl font-black text-primary font-headline tracking-tighter uppercase leading-none">
                     Welcome to the <br className="hidden md:block"/> NEU Library, <br className="hidden md:block"/> {profile?.displayName?.split(' ')[0]}!
                   </h1>
-                  <p className="text-xl font-bold text-muted-foreground uppercase tracking-widest opacity-60">Library Access Dashboard</p>
+                  <p className="text-xl font-bold text-muted-foreground uppercase tracking-widest opacity-60">Personal Access Registry</p>
                 </div>
                 
                 <div className="flex flex-wrap justify-center md:justify-start gap-3 pt-2">
-                  <Badge className="px-5 py-2 bg-primary/5 border-2 border-primary/10 text-primary font-black uppercase text-xs tracking-widest rounded-xl hover:bg-primary/10 transition-colors">
+                  <Badge className="px-5 py-2 bg-primary/5 border-2 border-primary/10 text-primary font-black uppercase text-xs tracking-widest rounded-xl">
                     {profile?.program}
                   </Badge>
-                  <Badge className="px-5 py-2 bg-secondary/10 border-2 border-secondary/30 text-primary font-black uppercase text-xs tracking-widest rounded-xl hover:bg-secondary/20 transition-colors">
+                  <Badge className="px-5 py-2 bg-secondary/10 border-2 border-secondary/30 text-primary font-black uppercase text-xs tracking-widest rounded-xl">
                     {profile?.college}
                   </Badge>
-                  {profile?.isEmployee && (
-                    <Badge className="bg-primary text-white px-5 py-2 font-black uppercase text-xs tracking-widest rounded-xl shadow-lg">
-                      {profile.employeeType}
-                    </Badge>
-                  )}
                 </div>
               </div>
 
               <div className="md:ml-auto">
                 <Dialog open={isLogModalOpen} onOpenChange={setIsLogModalOpen}>
                   <DialogTrigger asChild>
-                    <Button className="h-24 px-12 text-2xl font-black bg-primary hover:bg-primary/95 text-white shadow-2xl hover:shadow-[0_20px_50px_rgba(26,35,126,0.3)] transition-all duration-300 gap-4 group active:scale-[0.96] rounded-[1.5rem] uppercase tracking-tighter">
+                    <Button className="h-24 px-12 text-2xl font-black bg-primary hover:bg-primary/95 text-white shadow-2xl transition-all duration-300 gap-4 group rounded-[1.5rem] uppercase tracking-tighter">
                       <PlusCircle size={36} className="group-hover:rotate-90 transition-transform duration-500" />
-                      Record Visit
+                      Record New Visit
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[480px] rounded-[2rem] border-none shadow-2xl p-8">
@@ -177,33 +172,33 @@ export default function Dashboard() {
                         <History size={32} />
                       </div>
                       <div>
-                        <DialogTitle className="text-3xl font-black text-primary font-headline uppercase tracking-tight">Log Visit Entry</DialogTitle>
+                        <DialogTitle className="text-3xl font-black text-primary font-headline uppercase tracking-tight">New Entry</DialogTitle>
                         <DialogDescription className="text-lg font-bold text-muted-foreground">
-                          Please indicate your primary objective for visiting the NEU Library today.
+                          State your primary objective for today.
                         </DialogDescription>
                       </div>
                     </DialogHeader>
                     <form onSubmit={handleLogVisit} className="space-y-8 py-6">
                       <div className="space-y-4">
-                        <Label htmlFor="reason" className="text-primary font-black uppercase tracking-widest text-xs ml-1">Objective / Purpose</Label>
+                        <Label htmlFor="reason" className="text-primary font-black uppercase tracking-widest text-xs ml-1">Purpose</Label>
                         <Select onValueChange={setReason} value={reason}>
-                          <SelectTrigger id="reason" className="h-16 border-2 border-primary/5 bg-[#F8FAFC] font-black text-xl rounded-2xl px-6 focus:border-secondary transition-all">
+                          <SelectTrigger id="reason" className="h-16 border-2 border-primary/5 bg-[#F8FAFC] font-black text-xl rounded-2xl px-6">
                             <SelectValue placeholder="Select purpose..." />
                           </SelectTrigger>
                           <SelectContent className="rounded-2xl border-none shadow-2xl">
                             {REASONS.map(r => (
-                              <SelectItem key={r} value={r} className="font-black text-lg py-4 uppercase tracking-tighter cursor-pointer">{r}</SelectItem>
+                              <SelectItem key={r} value={r} className="font-black text-lg py-4 uppercase tracking-tighter">{r}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
                       {reason === "Other" && (
                         <div className="space-y-4 animate-in slide-in-from-top-4 duration-500">
-                          <Label htmlFor="otherReason" className="text-primary font-black uppercase tracking-widest text-xs ml-1">Please Elaborate</Label>
+                          <Label htmlFor="otherReason" className="text-primary font-black uppercase tracking-widest text-xs ml-1">Details</Label>
                           <Input 
                             id="otherReason" 
-                            placeholder="Enter specific reason here..." 
-                            className="h-16 border-2 border-primary/5 bg-[#F8FAFC] font-black text-xl rounded-2xl px-6 focus:border-secondary transition-all"
+                            placeholder="Enter specific reason..." 
+                            className="h-16 border-2 border-primary/5 bg-[#F8FAFC] font-black text-xl rounded-2xl px-6"
                             value={otherReason} 
                             onChange={(e) => setOtherReason(e.target.value)}
                             required
@@ -211,8 +206,7 @@ export default function Dashboard() {
                         </div>
                       )}
                       <DialogFooter className="pt-4">
-                        <Button type="submit" className="w-full h-20 bg-primary text-2xl font-black shadow-2xl hover:bg-primary/95 transition-all rounded-[1.25rem] uppercase tracking-tighter" disabled={isSubmitting}>
-                          {isSubmitting ? <Loader2 className="animate-spin mr-3 h-8 w-8" /> : null}
+                        <Button type="submit" className="w-full h-20 bg-primary text-2xl font-black shadow-2xl rounded-[1.25rem] uppercase tracking-tighter" disabled={isSubmitting}>
                           {isSubmitting ? "TRANSMITTING..." : "CONFIRM LOG"}
                         </Button>
                       </DialogFooter>
@@ -236,10 +230,10 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="relative w-full md:w-[400px] group">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/40 h-6 w-6 group-focus-within:text-primary transition-colors" />
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/40 h-6 w-6" />
               <Input 
                 className="pl-14 h-16 border-none shadow-xl bg-white rounded-2xl font-bold text-lg focus:ring-4 focus:ring-secondary/30 transition-all" 
-                placeholder="Search by objective..." 
+                placeholder="Search logs..." 
                 value={searchReason}
                 onChange={(e) => setSearchReason(e.target.value)}
               />
@@ -251,25 +245,21 @@ export default function Dashboard() {
               <Table>
                 <TableHeader className="bg-primary/5">
                   <TableRow className="hover:bg-transparent border-primary/10">
-                    <TableHead className="w-64 text-primary font-black uppercase text-xs tracking-widest h-16 px-10">
-                      <div className="flex items-center gap-3"><CalendarIcon size={18} className="text-secondary" /> Calendar Date</div>
-                    </TableHead>
-                    <TableHead className="w-64 text-primary font-black uppercase text-xs tracking-widest px-10">
-                      <div className="flex items-center gap-3"><Clock size={18} className="text-secondary" /> Entry Time</div>
-                    </TableHead>
-                    <TableHead className="text-primary font-black uppercase text-xs tracking-widest px-10">Visit Objective</TableHead>
+                    <TableHead className="w-64 text-primary font-black uppercase text-xs tracking-widest h-16 px-10">Calendar Date</TableHead>
+                    <TableHead className="w-64 text-primary font-black uppercase text-xs tracking-widest px-10">Entry Time</TableHead>
+                    <TableHead className="text-primary font-black uppercase text-xs tracking-widest px-10">Objective</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loadingVisits ? (
-                    Array(5).fill(0).map((_, i) => (
+                    Array(3).fill(0).map((_, i) => (
                       <TableRow key={i}>
                         <TableCell colSpan={3} className="py-12 px-10"><div className="h-10 bg-muted animate-pulse rounded-2xl"></div></TableCell>
                       </TableRow>
                     ))
                   ) : filteredVisits.length > 0 ? (
                     filteredVisits.map((visit) => (
-                      <TableRow key={visit.id} className="hover:bg-primary/5 transition-all duration-300 border-primary/5">
+                      <TableRow key={visit.id} className="hover:bg-primary/5 border-primary/5">
                         <TableCell className="font-black text-primary py-8 px-10 text-lg tracking-tight">
                           {visit.timestamp ? format(visit.timestamp, "MMMM dd, yyyy") : visit.date}
                         </TableCell>
@@ -277,7 +267,7 @@ export default function Dashboard() {
                           {visit.timestamp ? format(visit.timestamp, "hh:mm aa") : "--:--"}
                         </TableCell>
                         <TableCell className="px-10">
-                          <Badge variant="outline" className="font-black bg-white text-primary border-2 border-primary/10 px-6 py-2 shadow-sm uppercase text-xs tracking-widest rounded-xl hover:bg-secondary hover:border-secondary transition-all">
+                          <Badge variant="outline" className="font-black bg-white text-primary border-2 border-primary/10 px-6 py-2 uppercase text-xs tracking-widest rounded-xl">
                             {visit.reason}
                           </Badge>
                         </TableCell>
@@ -285,16 +275,8 @@ export default function Dashboard() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-40 text-muted-foreground">
-                        <div className="flex flex-col items-center gap-6">
-                          <div className="w-32 h-32 bg-[#F8FAFC] rounded-full flex items-center justify-center shadow-inner">
-                            <History size={64} className="opacity-10 text-primary" />
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-2xl font-black text-primary uppercase tracking-tighter">No History Records</p>
-                            <p className="text-base font-bold uppercase tracking-widest opacity-60">Log your first visit to start tracking!</p>
-                          </div>
-                        </div>
+                      <TableCell colSpan={3} className="text-center py-40">
+                        <p className="text-2xl font-black text-primary uppercase tracking-tighter">No History Records</p>
                       </TableCell>
                     </TableRow>
                   )}

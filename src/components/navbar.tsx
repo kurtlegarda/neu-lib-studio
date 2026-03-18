@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Library, Settings, LogOut, LayoutDashboard } from "lucide-react";
+import { Library, Settings, LogOut, LayoutDashboard, ShieldCheck } from "lucide-react";
 
 export function Navbar() {
   const { profile } = useAuth();
@@ -40,20 +40,14 @@ export function Navbar() {
 
       <div className="flex items-center gap-4">
         {profile?.role === "admin" && (
-          <>
+          <div className="flex items-center gap-2 mr-2">
             <Link href="/admin">
-              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-white/10 gap-2">
-                <Settings size={18} />
-                <span className="hidden sm:inline">Admin Panel</span>
+              <Button variant="secondary" size="sm" className="font-black uppercase tracking-tighter gap-2 shadow-lg border-2 border-white/10 hover:bg-secondary/90">
+                <ShieldCheck size={18} />
+                Admin Panel
               </Button>
             </Link>
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-white/10 gap-2">
-                <LayoutDashboard size={18} />
-                <span className="hidden sm:inline">User Dashboard</span>
-              </Button>
-            </Link>
-          </>
+          </div>
         )}
 
         <DropdownMenu>
@@ -74,6 +68,15 @@ export function Navbar() {
                 <p className="text-xs leading-none text-muted-foreground">{profile?.email}</p>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {profile?.role === "admin" && (
+              <DropdownMenuItem asChild>
+                <Link href="/admin" className="cursor-pointer">
+                  <Settings size={16} className="mr-2" />
+                  <span>Control Center</span>
+                </Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:bg-destructive/10 cursor-pointer">
               <LogOut size={16} className="mr-2" />
