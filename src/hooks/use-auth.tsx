@@ -51,59 +51,58 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (firebaseUser) {
         setUser(firebaseUser);
         
-        const userDocRef = doc(db, "users", firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
+        try {
+          const userDocRef = doc(db, "users", firebaseUser.uid);
+          const userDoc = await getDoc(userDocRef);
 
-        if (!userDoc.exists()) {
-          const newProfile: UserProfile = {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email || "",
-            displayName: firebaseUser.displayName || "",
-            photoURL: firebaseUser.photoURL || "",
-            role: "user",
-            isBlocked: false,
-            createdAt: new Date().toISOString(),
-          };
-          await setDoc(userDocRef, newProfile);
-          setProfile(newProfile);
-          setLoading(false);
-          // Only redirect if we are on the home page
-          if (pathname === "/") {
-            router.push("/log-visit");
+          let currentProfile: UserProfile;
+
+          if (!userDoc.exists()) {
+            currentProfile = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || "",
+              displayName: firebaseUser.displayName || "",
+              photoURL: firebaseUser.photoURL || "",
+              role: "user",
+              isBlocked: false,
+              createdAt: new Date().toISOString(),
+            };
+            await setDoc(userDocRef, currentProfile);
+          } else {
+            currentProfile = userDoc.data() as UserProfile;
           }
-        } else {
-          const data = userDoc.data() as UserProfile;
-          if (data.isBlocked) {
+
+          if (currentProfile.isBlocked) {
             await signOut(auth);
             toast({
               title: "Access Denied",
-              description: "You are not allowed to use the library. Please contact the administrator.",
+              description: "Your account is restricted. Contact the library administrator.",
               variant: "destructive",
             });
             setUser(null);
             setProfile(null);
             setLoading(false);
           } else {
-            setProfile(data);
+            setProfile(currentProfile);
             setLoading(false);
             
+            // Set up real-time listener for profile changes (like role or blocking)
             const unsubProfile = onSnapshot(userDocRef, (docSnap) => {
               if (docSnap.exists()) {
                 const updatedData = docSnap.data() as UserProfile;
                 setProfile(updatedData);
                 if (updatedData.isBlocked) {
                   signOut(auth);
+                  router.push("/");
                 }
               }
             });
 
-            // If user is on landing page and logged in, send them to log visit
-            if (pathname === "/") {
-              router.push("/log-visit");
-            }
-
             return () => unsubProfile();
           }
+        } catch (error) {
+          console.error("Profile synchronization failed:", error);
+          setLoading(false);
         }
       } else {
         setUser(null);
@@ -113,7 +112,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     return () => unsubscribeAuth();
-  }, [auth, db, pathname, router]);
+  }, [auth, db, router]);
 
   return (
     <AuthContext.Provider value={{ user, profile, loading, role: profile?.role || null }}>

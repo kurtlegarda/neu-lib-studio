@@ -3,12 +3,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { LogIn, Loader2, Library } from "lucide-react";
+import { LogIn, Loader2, Library, AlertCircle } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export default function Home() {
   const { user, profile, loading } = useAuth();
@@ -16,17 +17,41 @@ export default function Home() {
   const [signingIn, setSigningIn] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) {
+    // Only redirect if the profile is fully loaded and we have a user
+    if (!loading && user && profile) {
       router.push("/log-visit");
     }
-  }, [user, loading, router]);
+  }, [user, profile, loading, router]);
 
   const handleSignIn = async () => {
     setSigningIn(true);
     try {
+      // Force account selection to avoid automatic "closes" without user seeing the window
+      googleProvider.setCustomParameters({
+        prompt: 'select_account'
+      });
       await signInWithPopup(auth, googleProvider);
+      toast({
+        title: "Sign-in Success",
+        description: "Welcome to the NEU VisitFlow system.",
+      });
     } catch (error: any) {
       console.error("Sign in failed", error);
+      let message = "An unexpected error occurred during sign-in.";
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        message = "The sign-in window was closed before completion.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        message = "This domain is not authorized. Please add it to Firebase Console.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        message = "Google Sign-in is not enabled in Firebase Console.";
+      }
+
+      toast({
+        title: "Sign-in Error",
+        description: message,
+        variant: "destructive",
+      });
       setSigningIn(false);
     }
   };

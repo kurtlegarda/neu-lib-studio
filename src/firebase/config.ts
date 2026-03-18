@@ -1,3 +1,8 @@
+
+/**
+ * Firebase configuration using environment variables.
+ * Ensure these are set in your .env file or deployment settings.
+ */
 export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
@@ -6,3 +11,8 @@ export const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
 };
+
+// Check for missing keys in development
+if (typeof window !== "undefined" && !firebaseConfig.apiKey) {
+  console.error("Firebase API Key is missing. Check your NEXT_PUBLIC_FIREBASE_API_KEY environment variable.");
+}
