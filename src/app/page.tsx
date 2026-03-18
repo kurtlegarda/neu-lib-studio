@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
@@ -13,24 +13,21 @@ import { LogIn, Loader2, Library } from "lucide-react";
 export default function Home() {
   const { user, profile, loading } = useAuth();
   const router = useRouter();
+  const [signingIn, setSigningIn] = useState(false);
 
   useEffect(() => {
-    if (!loading && user && profile) {
-      if (!profile.program) {
-        router.push("/complete-profile");
-      } else if (profile.role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/dashboard");
-      }
+    if (!loading && user) {
+      router.push("/log-visit");
     }
-  }, [user, profile, loading, router]);
+  }, [user, loading, router]);
 
   const handleSignIn = async () => {
+    setSigningIn(true);
     try {
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sign in failed", error);
+      setSigningIn(false);
     }
   };
 
@@ -76,10 +73,11 @@ export default function Home() {
             
             <Button 
               onClick={handleSignIn} 
+              disabled={signingIn}
               className="w-full h-16 text-lg font-black bg-primary hover:bg-primary/95 text-white flex gap-4 shadow-xl transition-all active:scale-[0.98] rounded-xl group"
             >
-              <LogIn size={22} className="group-hover:translate-x-1 transition-transform" />
-              Sign in with Google
+              {signingIn ? <Loader2 className="animate-spin" /> : <LogIn size={22} className="group-hover:translate-x-1 transition-transform" />}
+              {signingIn ? "Signing In..." : "Sign in with Google"}
             </Button>
 
             <div className="flex flex-col items-center gap-3 pt-4">

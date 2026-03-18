@@ -67,7 +67,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           await setDoc(userDocRef, newProfile);
           setProfile(newProfile);
           setLoading(false);
-          router.push("/complete-profile");
+          // Only redirect if we are on the home page
+          if (pathname === "/") {
+            router.push("/log-visit");
+          }
         } else {
           const data = userDoc.data() as UserProfile;
           if (data.isBlocked) {
@@ -94,8 +97,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               }
             });
 
-            if (!data.program && pathname !== "/complete-profile" && !pathname.includes("/admin")) {
-              router.push("/complete-profile");
+            // If user is on landing page and logged in, send them to log visit
+            if (pathname === "/") {
+              router.push("/log-visit");
             }
 
             return () => unsubProfile();
