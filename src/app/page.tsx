@@ -8,19 +8,21 @@ import { auth, googleProvider } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { LogIn, Loader2, Library } from "lucide-react";
+import { LogIn, Loader2, Library, ShieldAlert } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export default function Home() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, error: authError } = useAuth();
   const router = useRouter();
   const [signingIn, setSigningIn] = useState(false);
   const logo = PlaceHolderImages.find(img => img.id === "neu-logo");
 
   useEffect(() => {
     if (!loading && user && profile) {
+      setSigningIn(false);
       if (profile.role === "admin") {
         router.push("/admin");
       } else {
@@ -29,6 +31,13 @@ export default function Home() {
     }
   }, [user, profile, loading, router]);
 
+  // If loading is false and user is null, make sure signingIn is false
+  useEffect(() => {
+    if (!loading && !user) {
+      setSigningIn(false);
+    }
+  }, [loading, user]);
+
   const handleSignIn = async () => {
     setSigningIn(true);
     try {
@@ -36,18 +45,13 @@ export default function Home() {
         prompt: 'select_account'
       });
       await signInWithPopup(auth, googleProvider);
-      toast({
-        title: "Sign-in Success",
-        description: "Welcome to the NEU VisitFlow system.",
-      });
+      // We don't set signingIn(false) here because useAuth hooks will trigger the redirect
     } catch (error: any) {
       console.error("Sign in failed", error);
       let message = "An unexpected error occurred during sign-in.";
       
       if (error.code === 'auth/popup-closed-by-user') {
         message = "The sign-in window was closed before completion.";
-      } else if (error.code === 'auth/unauthorized-domain') {
-        message = "This domain is not authorized. Please add it to Firebase Console.";
       }
 
       toast({
@@ -59,7 +63,7 @@ export default function Home() {
     }
   };
 
-  if (loading) {
+  if (loading && !signingIn) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -105,6 +109,16 @@ export default function Home() {
         </CardHeader>
         <CardContent className="pb-12 px-8">
           <div className="space-y-8">
+            {authError && (
+              <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 text-destructive animate-in slide-in-from-top-2 duration-300 rounded-2xl p-6">
+                <ShieldAlert className="h-5 w-5" />
+                <AlertTitle className="font-black uppercase tracking-widest text-xs mb-2">Access Denied</AlertTitle>
+                <AlertDescription className="font-bold text-sm">
+                  {authError}
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="text-center space-y-2">
               <p className="text-primary/70 font-medium leading-relaxed">
                 Official digital tracking system for the New Era University Library facilities.
@@ -117,7 +131,7 @@ export default function Home() {
               className="w-full h-16 text-lg font-black bg-primary hover:bg-primary/95 text-white flex gap-4 shadow-xl transition-all active:scale-[0.98] rounded-2xl group"
             >
               {signingIn ? <Loader2 className="animate-spin" /> : <LogIn size={22} className="group-hover:translate-x-1 transition-transform" />}
-              {signingIn ? "Signing In..." : "Sign in with Google"}
+              {signingIn ? "Verifying Identity..." : "Sign in with Google"}
             </Button>
 
             <div className="flex flex-col items-center gap-3 pt-4">
