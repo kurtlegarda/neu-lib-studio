@@ -25,7 +25,7 @@ import {
   TrendingUp, Calendar as CalendarIcon, UserPlus, Zap, Loader2, Filter, 
   PieChart, Activity
 } from "lucide-react";
-import { format, startOfDay, startOfWeek, startOfMonth, subDays, isSameDay } from "date-fns";
+import { format, startOfDay, endOfDay, startOfWeek, startOfMonth, subDays, isSameDay } from "date-fns";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { COLLEGES, REASONS } from "@/lib/constants";
@@ -44,6 +44,8 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [globalSearch, setGlobalSearch] = useState("");
   const [dateRangeMode, setDateRangeMode] = useState("This Month");
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
 
   // Quick Log State
   const [quickSearch, setQuickSearch] = useState("");
@@ -137,10 +139,18 @@ export default function AdminDashboard() {
       if (dateRangeMode === "Today") matchesDate = v.timestamp?.toDate() >= startOfDay(now);
       else if (dateRangeMode === "This Week") matchesDate = v.timestamp?.toDate() >= startOfWeek(now);
       else if (dateRangeMode === "This Month") matchesDate = v.timestamp?.toDate() >= startOfMonth(now);
+      else if (dateRangeMode === "Custom" && customStartDate && customEndDate) {
+        const vTime = v.timestamp?.toDate();
+        if (vTime) {
+          matchesDate = vTime >= startOfDay(new Date(customStartDate)) && vTime <= endOfDay(new Date(customEndDate));
+        } else {
+          matchesDate = false;
+        }
+      }
 
       return matchesReason && matchesCollege && matchesStatus && matchesSearch && matchesDate;
     });
-  }, [visits, reasonFilter, collegeFilter, statusFilter, globalSearch, dateRangeMode]);
+  }, [visits, reasonFilter, collegeFilter, statusFilter, globalSearch, dateRangeMode, customStartDate, customEndDate]);
 
   const handleToggleBlock = async (uid: string, currentStatus: boolean) => {
     try {
@@ -264,19 +274,47 @@ export default function AdminDashboard() {
             </h1>
             <p className="text-muted-foreground font-bold text-xl uppercase tracking-widest opacity-60">Library Oversight & Analytics</p>
           </div>
-          <div className="flex flex-wrap gap-4">
-            <Select onValueChange={setDateRangeMode} value={dateRangeMode}>
-              <SelectTrigger className="w-52 h-14 border-primary/20 bg-white font-black text-primary shadow-lg rounded-xl">
-                <CalendarIcon className="mr-2 h-5 w-5 text-secondary" />
-                <SelectValue placeholder="Period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Today">Today</SelectItem>
-                <SelectItem value="This Week">This Week</SelectItem>
-                <SelectItem value="This Month">This Month</SelectItem>
-                <SelectItem value="All Time">All Time</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="flex flex-col gap-2">
+              <Label className="text-xs font-black text-primary uppercase tracking-widest ml-1">Period Selection</Label>
+              <Select onValueChange={setDateRangeMode} value={dateRangeMode}>
+                <SelectTrigger className="w-52 h-14 border-primary/20 bg-white font-black text-primary shadow-lg rounded-xl">
+                  <CalendarIcon className="mr-2 h-5 w-5 text-secondary" />
+                  <SelectValue placeholder="Period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Today">Today</SelectItem>
+                  <SelectItem value="This Week">This Week</SelectItem>
+                  <SelectItem value="This Month">This Month</SelectItem>
+                  <SelectItem value="Custom">Custom Range</SelectItem>
+                  <SelectItem value="All Time">All Time</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {dateRangeMode === "Custom" && (
+              <div className="flex gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="flex flex-col gap-2">
+                  <Label className="text-xs font-black text-primary uppercase tracking-widest ml-1">Start Date</Label>
+                  <Input 
+                    type="date" 
+                    className="h-14 border-primary/20 bg-white font-bold rounded-xl shadow-lg w-44"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label className="text-xs font-black text-primary uppercase tracking-widest ml-1">End Date</Label>
+                  <Input 
+                    type="date" 
+                    className="h-14 border-primary/20 bg-white font-bold rounded-xl shadow-lg w-44"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
             <Button onClick={exportPDF} variant="outline" className="h-14 border-primary border-2 text-primary hover:bg-primary hover:text-white font-black shadow-lg gap-2 px-8 rounded-xl transition-all">
               <Download size={20} />
               EXPORT AUDIT
