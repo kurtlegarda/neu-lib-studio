@@ -20,7 +20,7 @@ export default function Home() {
   const [signingIn, setSigningIn] = useState(false);
   const logo = PlaceHolderImages.find(img => img.id === "neu-logo");
 
-  // Handle redirects
+  // Handle successful, unblocked redirects
   useEffect(() => {
     if (!loading && user && profile && !authError) {
       setSigningIn(false);
@@ -32,19 +32,19 @@ export default function Home() {
     }
   }, [user, profile, loading, authError, router]);
 
-  // Handle UI state cleanup
+  // UI state management: Stop spinner on terminal states
   useEffect(() => {
     if (!loading) {
-      // If we're not loading and there's no user, stop the spinner
-      if (!user) {
+      // Stop spinner if signed out or error occurs
+      if (!user || authError) {
         setSigningIn(false);
       }
-      // If there's an error (like being blocked), definitely stop the spinner
-      if (authError) {
+      // Safety: If signed in but no profile exists (shouldn't happen), stop spinner
+      if (user && !profile && !signingIn) {
         setSigningIn(false);
       }
     }
-  }, [loading, user, authError]);
+  }, [loading, user, authError, profile, signingIn]);
 
   const handleSignIn = async () => {
     setSigningIn(true);
