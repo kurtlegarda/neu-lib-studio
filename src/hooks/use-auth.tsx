@@ -5,8 +5,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, signOut } from "firebase/auth";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { useAuth as useFirebaseAuth, useFirestore } from "@/firebase/provider";
-import { useRouter, usePathname } from "next/navigation";
-import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 interface UserProfile {
   uid: string;
@@ -46,23 +45,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
+    let unsubProfile: (() => void) | null = null;
+
     const unsubscribeAuth = auth.onAuthStateChanged(async (firebaseUser) => {
-      setLoading(true);
+      // Clear previous profile subscription
+      if (unsubProfile) {
+        unsubProfile();
+        unsubProfile = null;
+      }
+
       if (firebaseUser) {
         setUser(firebaseUser);
         setError(null);
         
         try {
           const userDocRef = doc(db, "users", firebaseUser.uid);
+          
+          // Initial check/creation
           const userDoc = await getDoc(userDocRef);
-
-          let currentProfile: UserProfile;
-
           if (!userDoc.exists()) {
-            currentProfile = {
+            const newProfile: UserProfile = {
               uid: firebaseUser.uid,
               email: firebaseUser.email || "",
               displayName: firebaseUser.displayName || "",
@@ -71,44 +75,49 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               isBlocked: false,
               createdAt: new Date().toISOString(),
             };
-            await setDoc(userDocRef, currentProfile);
-          } else {
-            currentProfile = userDoc.data() as UserProfile;
+            await setDoc(userDocRef, newProfile);
+            setProfile(newProfile);
           }
 
-          if (currentProfile.isBlocked) {
-            setError("ACCESS RESTRICTED: Your account has been suspended from the library system. Please contact an administrator.");
-            await signOut(auth);
-            setUser(null);
-            setProfile(null);
-          } else {
-            setProfile(currentProfile);
-            
-            const unsubProfile = onSnapshot(userDocRef, (docSnap) => {
-              if (docSnap.exists()) {
-                const updatedData = docSnap.data() as UserProfile;
-                setProfile(updatedData);
-                if (updatedData.isBlocked) {
-                  setError("Your access has been revoked by an administrator.");
-                  signOut(auth);
-                }
+          // Real-time subscription
+          unsubProfile = onSnapshot(userDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+              const profileData = docSnap.data() as UserProfile;
+              
+              if (profileData.isBlocked) {
+                setError("ACCESS RESTRICTED: Your account has been suspended from the library system. Please contact an administrator.");
+                setProfile(null);
+                signOut(auth);
+                setUser(null);
+              } else {
+                setProfile(profileData);
+                setError(null);
               }
-            });
+            }
+            setLoading(false);
+          }, (err) => {
+            console.error("Profile subscription error:", err);
+            setError("Failed to sync your profile data.");
+            setLoading(false);
+          });
 
-            return () => unsubProfile();
-          }
         } catch (err) {
-          console.error("Profile sync failed:", err);
-          setError("Failed to initialize your session. Please try again.");
+          console.error("Auth initialization failed:", err);
+          setError("Failed to initialize your session.");
+          setLoading(false);
         }
       } else {
         setUser(null);
         setProfile(null);
+        setError(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => unsubscribeAuth();
+    return () => {
+      unsubscribeAuth();
+      if (unsubProfile) unsubProfile();
+    };
   }, [auth, db]);
 
   return (

@@ -20,8 +20,9 @@ export default function Home() {
   const [signingIn, setSigningIn] = useState(false);
   const logo = PlaceHolderImages.find(img => img.id === "neu-logo");
 
+  // Handle redirects
   useEffect(() => {
-    if (!loading && user && profile) {
+    if (!loading && user && profile && !authError) {
       setSigningIn(false);
       if (profile.role === "admin") {
         router.push("/admin");
@@ -29,14 +30,21 @@ export default function Home() {
         router.push("/log-visit");
       }
     }
-  }, [user, profile, loading, router]);
+  }, [user, profile, loading, authError, router]);
 
-  // If loading is false and user is null, make sure signingIn is false
+  // Handle UI state cleanup
   useEffect(() => {
-    if (!loading && !user) {
-      setSigningIn(false);
+    if (!loading) {
+      // If we're not loading and there's no user, stop the spinner
+      if (!user) {
+        setSigningIn(false);
+      }
+      // If there's an error (like being blocked), definitely stop the spinner
+      if (authError) {
+        setSigningIn(false);
+      }
     }
-  }, [loading, user]);
+  }, [loading, user, authError]);
 
   const handleSignIn = async () => {
     setSigningIn(true);
@@ -45,7 +53,6 @@ export default function Home() {
         prompt: 'select_account'
       });
       await signInWithPopup(auth, googleProvider);
-      // We don't set signingIn(false) here because useAuth hooks will trigger the redirect
     } catch (error: any) {
       console.error("Sign in failed", error);
       let message = "An unexpected error occurred during sign-in.";
