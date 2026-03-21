@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,7 +7,7 @@ import { auth, googleProvider } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { LogIn, Loader2, Library, ShieldAlert } from "lucide-react";
+import { LogIn, Loader2, ShieldAlert } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -18,12 +17,12 @@ export default function Home() {
   const { user, profile, loading, error: authError } = useAuth();
   const router = useRouter();
   const [signingIn, setSigningIn] = useState(false);
+  
   const logo = PlaceHolderImages.find(img => img.id === "neu-logo");
+  const banner = PlaceHolderImages.find(img => img.id === "neu-banner");
 
-  // Handle successful, unblocked redirects
   useEffect(() => {
     if (!loading && user && profile && !authError) {
-      setSigningIn(false);
       if (profile.role === "admin") {
         router.push("/admin");
       } else {
@@ -32,19 +31,13 @@ export default function Home() {
     }
   }, [user, profile, loading, authError, router]);
 
-  // UI state management: Stop spinner on terminal states
   useEffect(() => {
     if (!loading) {
-      // Stop spinner if signed out or error occurs
       if (!user || authError) {
         setSigningIn(false);
       }
-      // Safety: If signed in but no profile exists (shouldn't happen), stop spinner
-      if (user && !profile && !signingIn) {
-        setSigningIn(false);
-      }
     }
-  }, [loading, user, authError, profile, signingIn]);
+  }, [loading, user, authError]);
 
   const handleSignIn = async () => {
     setSigningIn(true);
@@ -82,25 +75,37 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#F5F6F8]">
-      <div className="absolute inset-0 z-0 opacity-5 pointer-events-none overflow-hidden">
-        <div className="grid grid-cols-6 gap-20 transform -rotate-12 translate-y-20">
-          {Array.from({ length: 48 }).map((_, i) => (
-            <Library key={i} size={80} className="text-primary" />
-          ))}
-        </div>
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Dynamic Background Banner */}
+      <div className="absolute inset-0 z-0">
+        {banner ? (
+          <>
+            <Image 
+              src={banner.imageUrl} 
+              alt="NEU Campus Background" 
+              fill 
+              className="object-cover"
+              priority
+              data-ai-hint="university building"
+            />
+            {/* Overlay for better card contrast */}
+            <div className="absolute inset-0 bg-primary/30 backdrop-blur-[2px]"></div>
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-[#F5F6F8]"></div>
+        )}
       </div>
 
-      <Card className="w-full max-w-md shadow-2xl border-none overflow-hidden relative z-10 bg-white rounded-[2.5rem]">
+      <Card className="w-full max-w-md shadow-2xl border-none overflow-hidden relative z-10 bg-white/95 backdrop-blur-md rounded-[2.5rem]">
         <div className="h-2 bg-secondary w-full"></div>
         <CardHeader className="text-center space-y-6 pt-12 pb-8">
-          <div className="mx-auto w-32 h-32 relative rounded-[2.5rem] overflow-hidden shadow-2xl transform transition-transform hover:scale-105 duration-500 border-4 border-white">
+          <div className="mx-auto w-32 h-32 relative rounded-[2.5rem] overflow-hidden shadow-2xl transform transition-transform hover:scale-105 duration-500 border-4 border-white bg-white">
             {logo ? (
               <Image 
                 src={logo.imageUrl} 
                 alt="NEU Logo" 
                 fill 
-                className="object-cover"
+                className="object-cover p-2"
                 data-ai-hint="university logo"
               />
             ) : (

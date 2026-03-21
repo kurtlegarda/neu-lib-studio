@@ -11,6 +11,12 @@
       "description": "Library interior background",
       "imageUrl": "https://picsum.photos/seed/library-int/1920/1080",
       "imageHint": "modern library"
+    },
+    {
+      "id": "neu-banner",
+      "description": "NEU University Banner",
+      "imageUrl": "https://cms.theuniguide.com/sites/default/files/2023-01/New%20Era%20University-%20banner-1786x642.png",
+      "imageHint": "university building"
     }
   ]
 }
