@@ -32,12 +32,11 @@ export default function Home() {
   }, [user, profile, loading, authError, router]);
 
   useEffect(() => {
-    if (!loading) {
-      if (!user || authError) {
-        setSigningIn(false);
-      }
+    // Reset local signingIn state if there's an error from context
+    if (authError) {
+      setSigningIn(false);
     }
-  }, [loading, user, authError]);
+  }, [authError]);
 
   const handleSignIn = async () => {
     setSigningIn(true);

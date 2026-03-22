@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
@@ -57,11 +56,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (firebaseUser) {
         setUser(firebaseUser);
+        setLoading(true);
         
         try {
           const userDocRef = doc(db, "users", firebaseUser.uid);
           
-          // Initial check/creation to ensure doc exists before snapshot
+          // Initial doc check/creation
           const userDoc = await getDoc(userDocRef);
           if (!userDoc.exists()) {
             const newProfile: UserProfile = {
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setProfile(newProfile);
           }
 
-          // Real-time subscription to profile changes (including blocking)
+          // Real-time subscription to profile changes
           unsubProfile = onSnapshot(userDocRef, (docSnap) => {
             if (docSnap.exists()) {
               const profileData = docSnap.data() as UserProfile;

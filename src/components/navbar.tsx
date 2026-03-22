@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -32,7 +31,7 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-primary text-primary-foreground shadow-sm px-4 h-16 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 select-none pointer-events-none">
           {logo && (
             <div className="relative w-10 h-10 overflow-hidden rounded-xl border-2 border-secondary shadow-lg">
               <Image 

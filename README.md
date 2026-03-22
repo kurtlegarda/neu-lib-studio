@@ -18,11 +18,13 @@ NEU VisitFlow is a specialized platform designed to streamline the tracking of l
   - User management (Promote to Admin, Block/Allow access).
   - Quick Check-in tool using Email or RFID lookup.
   - PDF Audit Export for official documentation.
+  - AI-driven trend analysis of visitor behavior.
 
 ## Tech Stack
-- **Frontend**: Next.js 15, React 19, Tailwind CSS
-- **UI Components**: Shadcn UI, Lucide Icons
-- **Backend/Database**: Firebase (Authentication, Firestore)
+- **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS
+- **UI Components**: Shadcn UI, Lucide Icons, Recharts
+- **Backend/Database**: Firebase (Authentication, Cloud Firestore)
+- **Reporting**: jsPDF, autoTable
 - **AI Integration**: Genkit (for automated trend analysis)
 
 ---
