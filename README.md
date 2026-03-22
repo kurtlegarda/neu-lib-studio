@@ -2,7 +2,8 @@
 
 Official visitor log and management system for the New Era University (NEU) Library.
 
-**Live Site:** [https://neu-lib-studio.vercel.app/](https://neu-lib-studio.vercel.app/)
+**Live Site:** [https://neu-lib-studio.vercel.app/](https://neu-lib-studio.vercel.app/)  
+**Repository:** [https://github.com/kurtlegarda/neu-lib-studio](https://github.com/kurtlegarda/neu-lib-studio)
 
 ## Overview
 NEU VisitFlow is a specialized platform designed to streamline the tracking of library visitors. It provides a seamless check-in process for students and faculty while offering administrators powerful analytical tools to monitor facility usage and generate professional reports.
