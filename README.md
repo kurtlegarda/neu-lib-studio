@@ -1,41 +1,28 @@
 # NEU VisitFlow - Library Visitor Log System
 
-A full-stack web application built for New Era University (NEU) to track and manage library visitors.
+Official visitor log and management system for the New Era University (NEU) Library.
 
-## Features
-- **Secure Google Sign-In**: Restricted access for university personnel.
-- **Role-Based Access Control**: Admin and User roles with different permissions.
-- **Visit Logging**: Simple and intuitive form for users to record their library visits.
-- **Admin Dashboard**: Real-time statistics, advanced filtering, and trend visualization.
-- **User Management**: Admins can block users or promote them to admin roles.
-- **Quick Check-in**: Admin tool to log visits for users via email or RFID.
-- **Report Generation**: Export filtered data to professional PDF reports.
+**Live Site:** [https://neu-lib-studio.vercel.app/](https://neu-lib-studio.vercel.app/)
+
+## Overview
+NEU VisitFlow is a specialized platform designed to streamline the tracking of library visitors. It provides a seamless check-in process for students and faculty while offering administrators powerful analytical tools to monitor facility usage and generate professional reports.
+
+## Key Features
+- **Secure Authentication**: Integration with Google Sign-In for verified university access.
+- **Profile Management**: Users can set up their academic profile (College, Program, Employee Status).
+- **Visit Logging**: Quick and easy recording of library visit purposes.
+- **Admin Control Center**:
+  - Real-time visitor statistics and trend charts.
+  - Advanced filtering by date (including custom ranges), college, and visit reason.
+  - User management (Promote to Admin, Block/Allow access).
+  - Quick Check-in tool using Email or RFID lookup.
+  - PDF Audit Export for official documentation.
 
 ## Tech Stack
-- **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS, ShadCN UI.
-- **Backend**: Firebase Authentication, Cloud Firestore.
-- **Charts**: Recharts.
-- **Reports**: jsPDF, autoTable.
-
-## Getting Started
-
-1.  Clone the repository.
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Set up Firebase:
-    - Create a Firebase project at [Firebase Console](https://console.firebase.google.com/).
-    - Enable **Google Auth** and **Cloud Firestore**.
-    - Copy your Firebase config and paste them into a `.env.local` file.
-4.  Run the development server:
-    ```bash
-    npm run dev
-    ```
-5.  Open [http://localhost:9002](http://localhost:9002) in your browser.
-
-## Deployment
-This app is ready to be deployed on Vercel. Connect your repository and add the environment variables to the Vercel dashboard.
+- **Frontend**: Next.js 15, React 19, Tailwind CSS
+- **UI Components**: Shadcn UI, Lucide Icons
+- **Backend/Database**: Firebase (Authentication, Firestore)
+- **AI Integration**: Genkit (for automated trend analysis)
 
 ---
-© 2024 New Era University Library System
+© 2024 New Era University Library. All rights reserved.
