@@ -38,7 +38,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
-  // Filters State
+  // Filters State (Visits)
   const [reasonFilter, setReasonFilter] = useState("All");
   const [collegeFilter, setCollegeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -46,6 +46,10 @@ export default function AdminDashboard() {
   const [dateRangeMode, setDateRangeMode] = useState("This Month");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
+
+  // User Management Filter
+  const [userClassFilter, setUserClassFilter] = useState("All");
+  const [userSearch, setUserSearch] = useState("");
 
   // Quick Log State
   const [quickSearch, setQuickSearch] = useState("");
@@ -151,6 +155,21 @@ export default function AdminDashboard() {
       return matchesReason && matchesCollege && matchesStatus && matchesSearch && matchesDate;
     });
   }, [visits, reasonFilter, collegeFilter, statusFilter, globalSearch, dateRangeMode, customStartDate, customEndDate]);
+
+  const filteredUsers = useMemo(() => {
+    return users.filter(u => {
+      const matchesSearch = !userSearch || 
+        u.displayName?.toLowerCase().includes(userSearch.toLowerCase()) || 
+        u.email?.toLowerCase().includes(userSearch.toLowerCase());
+      
+      let matchesClass = true;
+      if (userClassFilter === "Admin") matchesClass = u.role === "admin";
+      else if (userClassFilter === "Employee") matchesClass = u.role !== "admin" && u.isEmployee === true;
+      else if (userClassFilter === "Student") matchesClass = u.role !== "admin" && !u.isEmployee;
+
+      return matchesSearch && matchesClass;
+    });
+  }, [users, userSearch, userClassFilter]);
 
   const handleToggleBlock = async (uid: string, currentStatus: boolean) => {
     try {
@@ -296,18 +315,18 @@ export default function AdminDashboard() {
               <div className="flex gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="flex flex-col gap-2">
                   <Label className="text-xs font-black text-primary uppercase tracking-widest ml-1">Start Date</Label>
-                  <Input 
+                  <input 
                     type="date" 
-                    className="h-14 border-primary/20 bg-white font-bold rounded-xl shadow-lg w-44"
+                    className="h-14 border-2 border-primary/20 bg-white font-bold rounded-xl shadow-lg w-44 px-4 outline-none focus:border-primary"
                     value={customStartDate}
                     onChange={(e) => setCustomStartDate(e.target.value)}
                   />
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label className="text-xs font-black text-primary uppercase tracking-widest ml-1">End Date</Label>
-                  <Input 
+                  <input 
                     type="date" 
-                    className="h-14 border-primary/20 bg-white font-bold rounded-xl shadow-lg w-44"
+                    className="h-14 border-2 border-primary/20 bg-white font-bold rounded-xl shadow-lg w-44 px-4 outline-none focus:border-primary"
                     value={customEndDate}
                     onChange={(e) => setCustomEndDate(e.target.value)}
                   />
@@ -499,6 +518,30 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="users" className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex flex-wrap gap-6 items-center bg-white p-8 rounded-3xl shadow-2xl border-none mb-10">
+              <div className="flex-1 min-w-[300px] relative">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/40 h-6 w-6" />
+                <Input 
+                  placeholder="Search members by name or email..." 
+                  className="pl-14 h-16 border-2 border-primary/5 bg-[#F8FAFC] font-bold text-lg rounded-2xl focus:border-secondary focus:ring-0 transition-all"
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                />
+              </div>
+              <Select onValueChange={setUserClassFilter} value={userClassFilter}>
+                <SelectTrigger className="w-56 h-16 border-2 border-primary/5 bg-white font-black uppercase text-xs tracking-widest rounded-2xl">
+                  <Filter className="mr-2 h-4 w-4 text-secondary" />
+                  <SelectValue placeholder="Classification" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Members</SelectItem>
+                  <SelectItem value="Student">Students Only</SelectItem>
+                  <SelectItem value="Employee">Employee/Faculty</SelectItem>
+                  <SelectItem value="Admin">Administrators</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <Card className="border-none shadow-2xl overflow-hidden bg-white rounded-3xl">
               <CardHeader className="bg-[#F8FAFC] p-8 border-b">
                 <CardTitle className="text-2xl font-black text-primary flex items-center gap-4 font-headline uppercase tracking-tight">
@@ -518,7 +561,7 @@ export default function AdminDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((u) => (
+                    {filteredUsers.map((u) => (
                       <TableRow key={u.id} className="hover:bg-primary/5 transition-colors border-primary/5">
                         <TableCell className="py-7 px-8">
                           <div className="flex items-center gap-5">
@@ -534,7 +577,9 @@ export default function AdminDashboard() {
                         </TableCell>
                         <TableCell>
                           <div className="font-black text-primary text-base uppercase">{u.college || "Unassigned"}</div>
-                          <div className="text-[11px] font-black text-muted-foreground uppercase tracking-widest mt-1">{u.program || "Pending Setup"}</div>
+                          <div className="text-[11px] font-black text-muted-foreground uppercase tracking-widest mt-1">
+                            {u.isEmployee ? (u.employeeType || "STAFF") : (u.program || "Pending Setup")}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Badge className={`px-4 py-1.5 font-black text-xs uppercase tracking-widest ${u.role === "admin" ? "bg-primary text-white" : "bg-secondary text-primary"}`}>
@@ -616,7 +661,9 @@ export default function AdminDashboard() {
                         </Avatar>
                         <div className="space-y-1">
                           <p className="text-3xl font-black text-primary font-headline uppercase tracking-tighter leading-none">{foundUser.displayName}</p>
-                          <p className="text-lg font-black text-muted-foreground/60 uppercase tracking-widest">{foundUser.program} • {foundUser.college}</p>
+                          <p className="text-lg font-black text-muted-foreground/60 uppercase tracking-widest">
+                            {foundUser.isEmployee ? (foundUser.employeeType || "STAFF") : (foundUser.program || "STUDENT")} • {foundUser.college}
+                          </p>
                         </div>
                       </div>
                       

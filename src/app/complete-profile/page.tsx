@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import { UserCheck, Loader2, Sparkles, CreditCard } from "lucide-react";
+import { UserCheck, Loader2, Sparkles, CreditCard, Briefcase, GraduationCap } from "lucide-react";
 import { COLLEGES } from "@/lib/constants";
 
 export default function CompleteProfile() {
@@ -31,16 +31,27 @@ export default function CompleteProfile() {
     if (!loading && !user) {
       router.push("/");
     }
-    if (!loading && profile?.program) {
+    if (!loading && profile?.college && (isEmployee ? employeeType : program)) {
       router.push("/dashboard");
     }
-  }, [user, profile, loading, router]);
+  }, [user, profile, loading, router, isEmployee, employeeType, program]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!program || !college) {
-      toast({ title: "Registration Incomplete", description: "All mandatory academic fields must be finalized.", variant: "destructive" });
+    
+    if (!college) {
+      toast({ title: "Registration Incomplete", description: "Please select your College/Department.", variant: "destructive" });
+      return;
+    }
+
+    if (!isEmployee && !program) {
+      toast({ title: "Registration Incomplete", description: "Students must select an academic program.", variant: "destructive" });
+      return;
+    }
+
+    if (isEmployee && !employeeType) {
+      toast({ title: "Registration Incomplete", description: "Employees must select a professional classification.", variant: "destructive" });
       return;
     }
 
@@ -48,7 +59,7 @@ export default function CompleteProfile() {
     try {
       const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, {
-        program,
+        program: isEmployee ? "N/A" : program,
         college,
         isEmployee,
         employeeType: isEmployee ? employeeType : "",
@@ -91,9 +102,34 @@ export default function CompleteProfile() {
         </CardHeader>
         <CardContent className="p-12 space-y-10">
           <form onSubmit={handleSubmit} className="space-y-10">
+            <div className="p-8 bg-[#F8FAFC] rounded-[2rem] border-2 border-primary/5 flex items-center justify-between shadow-inner">
+              <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-xl transition-colors ${isEmployee ? 'bg-primary/10 text-primary' : 'bg-secondary/20 text-secondary-foreground'}`}>
+                  {isEmployee ? <Briefcase size={28} /> : <GraduationCap size={28} />}
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xl font-black text-primary uppercase tracking-tighter">
+                    {isEmployee ? "University Personnel" : "University Student"}
+                  </Label>
+                  <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest">
+                    {isEmployee ? "Logged as Faculty or Staff" : "Logged as Academic Learner"}
+                  </p>
+                </div>
+              </div>
+              <Switch 
+                checked={isEmployee} 
+                onCheckedChange={(val) => {
+                  setIsEmployee(val);
+                  setProgram("");
+                  setEmployeeType("");
+                }} 
+                className="data-[state=checked]:bg-primary scale-125"
+              />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
-                <Label htmlFor="college" className="text-primary font-black uppercase tracking-widest text-[11px] ml-1">University College</Label>
+                <Label htmlFor="college" className="text-primary font-black uppercase tracking-widest text-[11px] ml-1">University College / Dept</Label>
                 <Select onValueChange={(val) => { setCollege(val); setProgram(""); }} value={college}>
                   <SelectTrigger id="college" className="h-16 border-2 border-primary/5 bg-[#F8FAFC] font-black text-xl rounded-2xl px-6 focus:border-secondary transition-all">
                     <SelectValue placeholder="Select college..." />
@@ -106,19 +142,34 @@ export default function CompleteProfile() {
                 </Select>
               </div>
 
-              <div className="space-y-4">
-                <Label htmlFor="program" className="text-primary font-black uppercase tracking-widest text-[11px] ml-1">Academic Major / Program</Label>
-                <Select onValueChange={setProgram} value={program} disabled={!college}>
-                  <SelectTrigger id="program" className="h-16 border-2 border-primary/5 bg-[#F8FAFC] font-black text-xl rounded-2xl px-6 focus:border-secondary transition-all">
-                    <SelectValue placeholder="Select program..." />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-none shadow-2xl">
-                    {selectedCollegeData?.programs.map((p) => (
-                      <SelectItem key={p} value={p} className="font-black text-lg py-4 uppercase tracking-tighter">{p}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {!isEmployee ? (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+                  <Label htmlFor="program" className="text-primary font-black uppercase tracking-widest text-[11px] ml-1">Academic Major / Program</Label>
+                  <Select onValueChange={setProgram} value={program} disabled={!college}>
+                    <SelectTrigger id="program" className="h-16 border-2 border-primary/5 bg-[#F8FAFC] font-black text-xl rounded-2xl px-6 focus:border-secondary transition-all">
+                      <SelectValue placeholder="Select program..." />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border-none shadow-2xl">
+                      {selectedCollegeData?.programs.map((p) => (
+                        <SelectItem key={p} value={p} className="font-black text-lg py-4 uppercase tracking-tighter">{p}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+                  <Label className="text-primary font-black uppercase tracking-widest text-[11px] ml-1">Professional Classification</Label>
+                  <Select onValueChange={setEmployeeType} value={employeeType}>
+                    <SelectTrigger className="h-16 border-2 border-primary/5 bg-[#F8FAFC] font-black text-xl rounded-2xl px-6">
+                      <SelectValue placeholder="Teacher or Staff?" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border-none shadow-2xl">
+                      <SelectItem value="Teacher" className="font-black text-lg py-4 uppercase tracking-tighter">Teaching Faculty</SelectItem>
+                      <SelectItem value="Staff" className="font-black text-lg py-4 uppercase tracking-tighter">Non-Teaching Staff</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
@@ -134,33 +185,6 @@ export default function CompleteProfile() {
                 className="h-16 border-2 border-primary/5 bg-[#F8FAFC] font-black text-xl rounded-2xl px-6 focus:border-secondary transition-all"
               />
             </div>
-
-            <div className="p-8 bg-[#F8FAFC] rounded-[2rem] border-2 border-primary/5 flex items-center justify-between shadow-inner">
-              <div className="space-y-1">
-                <Label className="text-xl font-black text-primary uppercase tracking-tighter">University Personnel</Label>
-                <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest">Toggle for Faculty or Staff classification</p>
-              </div>
-              <Switch 
-                checked={isEmployee} 
-                onCheckedChange={setIsEmployee} 
-                className="data-[state=checked]:bg-primary scale-125"
-              />
-            </div>
-
-            {isEmployee && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-top-6 duration-500 bg-secondary/5 p-8 rounded-[2rem] border-2 border-secondary/20">
-                <Label className="text-primary font-black uppercase tracking-widest text-[11px] ml-1">Professional Classification</Label>
-                <Select onValueChange={setEmployeeType} value={employeeType}>
-                  <SelectTrigger className="h-16 bg-white border-2 border-primary/5 font-black text-xl rounded-2xl px-6">
-                    <SelectValue placeholder="Staff or Academic Faculty?" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-none shadow-2xl">
-                    <SelectItem value="Teacher" className="font-black text-lg py-4 uppercase tracking-tighter">Teaching Faculty</SelectItem>
-                    <SelectItem value="Staff" className="font-black text-lg py-4 uppercase tracking-tighter">Non-Teaching Staff</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
             <Button 
               type="submit" 
