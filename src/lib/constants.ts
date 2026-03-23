@@ -39,8 +39,8 @@ export const COLLEGES = [
     programs: ["BA-Communication", "BA-Broadcasting", "BA-Journalism"],
   },
   {
-    id: "CCS",
-    name: "Computer Studies",
+    id: "CICS",
+    name: "Information and Computing Sciences",
     programs: [
       "Bachelor of Library Information Science",
       "BS-Information Technology",

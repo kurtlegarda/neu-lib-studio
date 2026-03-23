@@ -709,7 +709,7 @@ export default function AdminDashboard() {
                   <div className="space-y-8">
                     {[
                       { label: "Active Peak Period", val: "10:00 AM - 2:00 PM", color: "text-blue-600" },
-                      { label: "Top Logged College", val: "CCS", color: "text-green-600" },
+                      { label: "Top Logged College", val: "CICS", color: "text-green-600" },
                       { label: "Database Sync", val: "REAL-TIME", color: "text-primary" },
                       { label: "Registry Protocol", val: "ACTIVE", color: "text-secondary" }
                     ].map((m, i) => (
