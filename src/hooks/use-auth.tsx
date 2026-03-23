@@ -65,7 +65,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // Initial doc check/creation
           const userDoc = await getDoc(userDocRef);
           if (!userDoc.exists()) {
-            // Check if the email belongs to the designated admin
             const isAdminEmail = firebaseUser.email === "jcesperanza@neu.edu.ph";
             
             const newProfile: UserProfile = {
@@ -81,7 +80,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setProfile(newProfile);
           }
 
-          // Real-time subscription to profile changes
           unsubProfile = onSnapshot(userDocRef, (docSnap) => {
             if (docSnap.exists()) {
               const profileData = docSnap.data() as UserProfile;

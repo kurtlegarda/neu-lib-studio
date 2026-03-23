@@ -18,12 +18,22 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/hooks/use-toast";
 import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell 
 } from "recharts";
 import { 
   Users, UserCheck, FileText, Search, Download, Shield, ShieldAlert, 
   TrendingUp, Calendar as CalendarIcon, UserPlus, Zap, Loader2, Filter, 
-  PieChart, Activity
+  PieChart, Activity, LayoutDashboard
 } from "lucide-react";
 import { format, startOfDay, endOfDay, startOfWeek, startOfMonth, subDays, isSameDay } from "date-fns";
 import { jsPDF } from "jspdf";
@@ -37,6 +47,10 @@ export default function AdminDashboard() {
   const [visits, setVisits] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+
+  // Role Swap State
+  const [roleSwapUser, setRoleSwapUser] = useState<any>(null);
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
 
   // Filters State (Visits)
   const [reasonFilter, setReasonFilter] = useState("All");
@@ -73,7 +87,6 @@ export default function AdminDashboard() {
       },
       (error) => {
         console.error("Admin visits fetch error:", error);
-        toast({ title: "Fetch Error", description: "Failed to load visit history.", variant: "destructive" });
         setLoadingData(false);
       }
     );
@@ -180,10 +193,30 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleToggleRole = async (uid: string, currentRole: string) => {
+  const initiateRoleToggle = (targetUser: any) => {
+    if (targetUser.uid === user?.uid) {
+      toast({ 
+        title: "Self-Demotion Blocked", 
+        description: "To prevent system lockout, you cannot revoke your own administrative privileges.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+    setRoleSwapUser(targetUser);
+    setIsRoleDialogOpen(true);
+  };
+
+  const confirmRoleToggle = async () => {
+    if (!roleSwapUser) return;
     try {
-      await updateDoc(doc(db, "users", uid), { role: currentRole === "admin" ? "user" : "admin" });
-      toast({ title: "Authority Updated", description: `Privileges changed to ${currentRole === "admin" ? 'User' : 'Admin'}.` });
+      const nextRole = roleSwapUser.role === "admin" ? "user" : "admin";
+      await updateDoc(doc(db, "users", roleSwapUser.id), { role: nextRole });
+      toast({ 
+        title: "Authority Updated", 
+        description: `${roleSwapUser.displayName} is now a ${nextRole === "admin" ? 'Administrator' : 'Standard User'}.` 
+      });
+      setIsRoleDialogOpen(false);
+      setRoleSwapUser(null);
     } catch (error) {
       toast({ title: "Error", description: "Failed to update authority level.", variant: "destructive" });
     }
@@ -294,6 +327,11 @@ export default function AdminDashboard() {
             <p className="text-muted-foreground font-bold text-xl uppercase tracking-widest opacity-60">Library Oversight & Analytics</p>
           </div>
           <div className="flex flex-wrap gap-4 items-end">
+            <Button onClick={() => router.push("/dashboard")} variant="outline" className="h-14 border-secondary border-2 text-primary hover:bg-secondary/10 font-black shadow-lg gap-2 px-8 rounded-xl transition-all">
+              <LayoutDashboard size={20} />
+              USER VIEW
+            </Button>
+            
             <div className="flex flex-col gap-2">
               <Label className="text-xs font-black text-primary uppercase tracking-widest ml-1">Period Selection</Label>
               <Select onValueChange={setDateRangeMode} value={dateRangeMode}>
@@ -602,7 +640,7 @@ export default function AdminDashboard() {
                             variant="outline" 
                             size="sm" 
                             className="h-11 px-5 font-black border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-xl shadow-lg transition-all"
-                            onClick={() => handleToggleRole(u.id, u.role)}
+                            onClick={() => initiateRoleToggle(u)}
                           >
                             Swap Privileges
                           </Button>
@@ -725,6 +763,31 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Role Swap Confirmation Dialog */}
+      <AlertDialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
+        <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
+          <AlertDialogHeader className="space-y-4">
+            <AlertDialogTitle className="text-2xl font-black text-primary uppercase tracking-tighter font-headline">
+              Confirm Authority Change
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-lg font-bold text-muted-foreground">
+              You are about to change {roleSwapUser?.displayName}&apos;s access level to 
+              <span className="text-primary font-black"> {roleSwapUser?.role === "admin" ? "Standard User" : "Administrator"}</span>. 
+              This will immediately update their permissions across the entire system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="pt-6">
+            <AlertDialogCancel className="h-14 px-8 font-black uppercase tracking-widest border-2 rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmRoleToggle}
+              className="h-14 px-8 font-black uppercase tracking-widest bg-primary text-white rounded-xl shadow-lg"
+            >
+              Confirm Change
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -14,12 +15,12 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { LogOut } from "lucide-react";
+import { LogOut, ShieldCheck, LayoutDashboard } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export function Navbar() {
-  const { profile } = useAuth();
+  const { profile, role } = useAuth();
   const router = useRouter();
   const logo = PlaceHolderImages.find(img => img.id === "neu-logo");
 
@@ -31,7 +32,7 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-primary text-primary-foreground shadow-sm px-4 h-16 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-3 select-none pointer-events-none">
+        <div className="flex items-center gap-3 select-none cursor-pointer" onClick={() => router.push("/dashboard")}>
           {logo && (
             <div className="relative w-10 h-10 overflow-hidden rounded-xl border-2 border-secondary shadow-lg">
               <Image 
@@ -48,6 +49,17 @@ export function Navbar() {
       </div>
 
       <div className="flex items-center gap-4">
+        {role === "admin" && (
+          <Button 
+            variant="ghost" 
+            className="hidden md:flex font-black uppercase text-xs tracking-widest text-secondary hover:text-white hover:bg-white/10 gap-2"
+            onClick={() => router.push("/admin")}
+          >
+            <ShieldCheck size={16} />
+            Admin Panel
+          </Button>
+        )}
+        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 border-2 border-secondary/30">
@@ -66,6 +78,17 @@ export function Navbar() {
                 <p className="text-xs leading-none text-muted-foreground">{profile?.email}</p>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push("/dashboard")} className="cursor-pointer">
+              <LayoutDashboard size={16} className="mr-2" />
+              <span>User Dashboard</span>
+            </DropdownMenuItem>
+            {role === "admin" && (
+              <DropdownMenuItem onClick={() => router.push("/admin")} className="cursor-pointer font-bold text-primary">
+                <ShieldCheck size={16} className="mr-2" />
+                <span>Central Control</span>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:bg-destructive/10 cursor-pointer">
               <LogOut size={16} className="mr-2" />

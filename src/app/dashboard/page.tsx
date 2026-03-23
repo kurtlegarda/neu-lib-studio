@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/hooks/use-toast";
-import { PlusCircle, Search, History, Loader2, Sparkles } from "lucide-react";
+import { PlusCircle, Search, History, Loader2, Sparkles, ShieldCheck } from "lucide-react";
 import { format } from "date-fns";
 import { REASONS } from "@/lib/constants";
 
@@ -38,16 +38,14 @@ export default function Dashboard() {
     if (!loading) {
       if (!user) {
         router.push("/");
-      } else if (role === "admin") {
-        router.push("/admin");
-      } else if (profile && !profile.program) {
+      } else if (profile && !profile.college) {
         router.push("/complete-profile");
       }
     }
-  }, [user, profile, loading, role, router]);
+  }, [user, profile, loading, router]);
 
   useEffect(() => {
-    if (!user || role === "admin") return;
+    if (!user) return;
 
     const q = query(
       collection(db, "visits"),
@@ -69,7 +67,7 @@ export default function Dashboard() {
     });
 
     return () => unsubscribe();
-  }, [user, role]);
+  }, [user]);
 
   const handleLogVisit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +84,7 @@ export default function Dashboard() {
         uid: profile.uid,
         displayName: profile.displayName,
         email: profile.email,
-        program: profile.program,
+        program: profile.program || "N/A",
         college: profile.college,
         isEmployee: profile.isEmployee || false,
         employeeType: profile.employeeType || "",
@@ -111,7 +109,7 @@ export default function Dashboard() {
     v.reason?.toLowerCase().includes(searchReason.toLowerCase())
   );
 
-  if (loading || role === "admin") {
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -152,11 +150,17 @@ export default function Dashboard() {
                 
                 <div className="flex flex-wrap justify-center md:justify-start gap-3 pt-2">
                   <Badge className="px-5 py-2 bg-primary/5 border-2 border-primary/10 text-primary font-black uppercase text-xs tracking-widest rounded-xl">
-                    {profile?.program}
+                    {profile?.isEmployee ? (profile?.employeeType || "STAFF") : profile?.program}
                   </Badge>
                   <Badge className="px-5 py-2 bg-secondary/10 border-2 border-secondary/30 text-primary font-black uppercase text-xs tracking-widest rounded-xl">
                     {profile?.college}
                   </Badge>
+                  {role === "admin" && (
+                    <Badge className="px-5 py-2 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-xl flex items-center gap-2 cursor-pointer hover:bg-primary/90 transition-colors" onClick={() => router.push("/admin")}>
+                      <ShieldCheck size={14} />
+                      ADMIN MODE ACTIVE
+                    </Badge>
+                  )}
                 </div>
               </div>
 
