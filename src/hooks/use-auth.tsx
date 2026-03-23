@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
@@ -64,12 +65,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // Initial doc check/creation
           const userDoc = await getDoc(userDocRef);
           if (!userDoc.exists()) {
+            // Check if the email belongs to the designated admin
+            const isAdminEmail = firebaseUser.email === "jcesperanza@neu.edu.ph";
+            
             const newProfile: UserProfile = {
               uid: firebaseUser.uid,
               email: firebaseUser.email || "",
               displayName: firebaseUser.displayName || "",
               photoURL: firebaseUser.photoURL || "",
-              role: "user",
+              role: isAdminEmail ? "admin" : "user",
               isBlocked: false,
               createdAt: new Date().toISOString(),
             };
