@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/hooks/use-toast";
 import { UserCheck, Loader2, Sparkles, CreditCard, Briefcase, GraduationCap } from "lucide-react";
 import { COLLEGES } from "@/lib/constants";
@@ -20,9 +20,9 @@ export default function CompleteProfile() {
   const { user, profile, loading } = useAuth();
   const router = useRouter();
   
+  const [classification, setClassification] = useState<"student" | "employee">("student");
   const [program, setProgram] = useState("");
   const [college, setCollege] = useState("");
-  const [isEmployee, setIsEmployee] = useState(false);
   const [employeeType, setEmployeeType] = useState("");
   const [rfid, setRfid] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -31,27 +31,30 @@ export default function CompleteProfile() {
     if (!loading && !user) {
       router.push("/");
     }
-    if (!loading && profile?.college && (isEmployee ? employeeType : program)) {
+    // Redirect if profile is already complete
+    if (!loading && profile?.college && (profile.isEmployee ? profile.employeeType : profile.program)) {
       router.push("/dashboard");
     }
-  }, [user, profile, loading, router, isEmployee, employeeType, program]);
+  }, [user, profile, loading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     
+    const isEmployee = classification === "employee";
+
     if (!college) {
-      toast({ title: "Registration Incomplete", description: "Please select your College/Department.", variant: "destructive" });
+      toast({ title: "Incomplete Form", description: "Please select your College or Department.", variant: "destructive" });
       return;
     }
 
     if (!isEmployee && !program) {
-      toast({ title: "Registration Incomplete", description: "Students must select an academic program.", variant: "destructive" });
+      toast({ title: "Incomplete Form", description: "Students must select an academic program.", variant: "destructive" });
       return;
     }
 
     if (isEmployee && !employeeType) {
-      toast({ title: "Registration Incomplete", description: "Employees must select a professional classification.", variant: "destructive" });
+      toast({ title: "Incomplete Form", description: "Please specify if you are a Teacher or Staff member.", variant: "destructive" });
       return;
     }
 
@@ -65,11 +68,11 @@ export default function CompleteProfile() {
         employeeType: isEmployee ? employeeType : "",
         rfid: rfid || "",
       });
-      toast({ title: "Profile Initialized", description: "Access granted to NEU VisitFlow." });
+      toast({ title: "Profile Initialized", description: "Welcome to the NEU Library digital community." });
       router.push("/dashboard");
     } catch (error) {
       console.error("Profile update error:", error);
-      toast({ title: "Sync Failure", description: "Failed to finalize your digital identity.", variant: "destructive" });
+      toast({ title: "Sync Failure", description: "Failed to finalize your profile. Please try again.", variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -96,35 +99,44 @@ export default function CompleteProfile() {
             </div>
             <div className="space-y-1">
               <CardTitle className="text-4xl font-black font-headline tracking-tighter uppercase leading-none">Identity Setup</CardTitle>
-              <CardDescription className="text-white/70 font-bold text-lg uppercase tracking-widest">Finalize your university credentials</CardDescription>
+              <CardDescription className="text-white/70 font-bold text-lg uppercase tracking-widest">Define your university role</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-12 space-y-10">
           <form onSubmit={handleSubmit} className="space-y-10">
-            <div className="p-8 bg-[#F8FAFC] rounded-[2rem] border-2 border-primary/5 flex items-center justify-between shadow-inner">
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-xl transition-colors ${isEmployee ? 'bg-primary/10 text-primary' : 'bg-secondary/20 text-secondary-foreground'}`}>
-                  {isEmployee ? <Briefcase size={28} /> : <GraduationCap size={28} />}
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xl font-black text-primary uppercase tracking-tighter">
-                    {isEmployee ? "University Personnel" : "University Student"}
-                  </Label>
-                  <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest">
-                    {isEmployee ? "Logged as Faculty or Staff" : "Logged as Academic Learner"}
-                  </p>
-                </div>
-              </div>
-              <Switch 
-                checked={isEmployee} 
-                onCheckedChange={(val) => {
-                  setIsEmployee(val);
+            <div className="space-y-6">
+              <Label className="text-primary font-black uppercase tracking-widest text-xs ml-1">Academic Classification</Label>
+              <RadioGroup 
+                value={classification} 
+                onValueChange={(val: "student" | "employee") => {
+                  setClassification(val);
                   setProgram("");
                   setEmployeeType("");
-                }} 
-                className="data-[state=checked]:bg-primary scale-125"
-              />
+                }}
+                className="grid grid-cols-2 gap-6"
+              >
+                <div>
+                  <RadioGroupItem value="student" id="student" className="peer sr-only" />
+                  <Label
+                    htmlFor="student"
+                    className="flex flex-col items-center justify-between rounded-2xl border-2 border-primary/5 bg-[#F8FAFC] p-6 hover:bg-white hover:border-secondary cursor-pointer peer-data-[state=checked]:border-secondary peer-data-[state=checked]:bg-white transition-all shadow-sm"
+                  >
+                    <GraduationCap className={`mb-3 h-8 w-8 ${classification === 'student' ? 'text-secondary' : 'text-primary/20'}`} />
+                    <span className="text-lg font-black uppercase tracking-tighter text-primary">Student</span>
+                  </Label>
+                </div>
+                <div>
+                  <RadioGroupItem value="employee" id="employee" className="peer sr-only" />
+                  <Label
+                    htmlFor="employee"
+                    className="flex flex-col items-center justify-between rounded-2xl border-2 border-primary/5 bg-[#F8FAFC] p-6 hover:bg-white hover:border-secondary cursor-pointer peer-data-[state=checked]:border-secondary peer-data-[state=checked]:bg-white transition-all shadow-sm"
+                  >
+                    <Briefcase className={`mb-3 h-8 w-8 ${classification === 'employee' ? 'text-secondary' : 'text-primary/20'}`} />
+                    <span className="text-lg font-black uppercase tracking-tighter text-primary">Employee</span>
+                  </Label>
+                </div>
+              </RadioGroup>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -142,7 +154,7 @@ export default function CompleteProfile() {
                 </Select>
               </div>
 
-              {!isEmployee ? (
+              {classification === "student" ? (
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
                   <Label htmlFor="program" className="text-primary font-black uppercase tracking-widest text-[11px] ml-1">Academic Major / Program</Label>
                   <Select onValueChange={setProgram} value={program} disabled={!college}>
